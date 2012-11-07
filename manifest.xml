@@ -1,0 +1,15 @@
+<package>
+  <description brief="pmd_camboard_nano">
+
+     ROS driver for PMD[vision]® CamBoard nano depth sensor.
+
+  </description>
+  <author>Sergey Alexandrov</author>
+  <license>BSD</license>
+
+  <depend package="roscpp"/>
+  <depend package="sensor_msgs"/>
+
+</package>
+
+
