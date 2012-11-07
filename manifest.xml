@@ -9,6 +9,12 @@
 
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
+  <depend package="image_transport"/>
+  <depend package="nodelet"/>
+
+  <export>
+    <nodelet plugin="${prefix}/pmd_camboard_nano_nodelets.xml" />
+  </export>
 
 </package>
 

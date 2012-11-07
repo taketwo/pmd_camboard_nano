@@ -52,12 +52,13 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-#...: target executables :......................................................
+#...: target libraries :........................................................
 
-#...: pmd_camboard_nano
-rosbuild_add_executable(pmd_camboard_nano
-  nodes/pmd_camboard_nano.cpp
+#...: pmd_camboard_nano_nodelet
+rosbuild_add_library(pmd_camboard_nano_nodelet
+  src/driver_nodelet.cpp
+  src/pmd_camboard_nano.cpp
 )
-target_link_libraries(pmd_camboard_nano
+target_link_libraries(pmd_camboard_nano_nodelet
   ${PMD_LIBRARY}
 )

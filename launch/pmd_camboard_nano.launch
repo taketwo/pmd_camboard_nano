@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- "camera" should uniquely identify the device. All topics are pushed down
+       into the "camera" namespace, and it is prepended to tf frame ids. -->
+  <arg name="camera" default="camera"/>
+
+  <arg name="depth_frame_id" default="/$(arg camera)_depth_optical_frame"/>
+
+  <!-- Serial number of the device to open. If this argument is an empty string,
+       the first available device will be opened. -->
+  <arg name="device_serial" default=""/>
+
+  <arg name="manager" value="$(arg camera)_nodelet_manager"/>
+
+  <arg name="rectify" default="true"/>
+
+  <arg name="points" default="true"/>
+
+  <arg name="respawn" default="true"/>
+
+  <!-- Start nodelet manager in top-level namespace -->
+  <node pkg="nodelet" type="nodelet" name="$(arg manager)" output="screen"
+        args="manager" />
+
+  <!-- Push down all topics/nodelets into "camera" namespace -->
+  <group ns="$(arg camera)">
+
+    <!-- Driver nodelet -->
+    <node pkg="nodelet" type="nodelet" name="driver" output="screen"
+          args="load pmd_camboard_nano/driver /$(arg manager)">
+          <param name="device_serial" value="$(arg device_serial)"/>
+          <param name="depth_frame_id" value="$(arg depth_frame_id)"/>
+    </node>
+
+    <!-- Rectified depth image (optional) -->
+    <node if="$(arg rectify)"
+          pkg="nodelet" type="nodelet" name="rectify_depth"
+          args="load image_proc/rectify /$(arg manager)"
+          respawn="$(arg respawn)">
+          <remap from="image_mono" to="depth/image"/>
+          <remap from="camera_info" to="depth/camera_info"/>
+          <remap from="image_rect" to="depth/image_rect"/>
+          <!-- Use nearest neighbor (0) interpolation so we don't streak across
+               depth boundaries -->
+          <param name="interpolation" value="0"/>
+    </node>
+
+    <!-- XYZ point cloud (optional) -->
+    <node if="$(arg points)"
+          pkg="nodelet" type="nodelet" name="points" output="screen"
+          args="load depth_image_proc/point_cloud_xyz /$(arg manager)"
+          respawn="$(arg respawn)">
+          <remap from="image_rect" to="depth/image_rect"/>
+          <remap from="camera_info" to="depth/camera_info"/>
+          <remap from="points" to="depth/points"/>
+    </node>
+
+  </group>
+
+  <!-- Publish transforms for depth frame and depth optical frame -->
+  <arg name="optical_rotate" value="0 0 0 -1.5707963267948966 0 -1.5707963267948966"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="$(arg camera)_base_link1"
+        args="0 0 0 0 0 0 /$(arg camera)_link /$(arg camera)_depth_frame 100"/>
+
+  <node pkg="tf" type="static_transform_publisher" name="$(arg camera)_base_link2"
+        args="$(arg optical_rotate) /$(arg camera)_depth_frame /$(arg camera)_depth_optical_frame 100"/>
+
+</launch>
