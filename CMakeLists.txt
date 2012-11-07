@@ -26,17 +26,17 @@ else()
 endif()
 
 find_path(PMD_INCLUDE_DIR pmdsdk2.h
-  ${PMDDIR}/include
+  $ENV{PMDDIR}/include
   /usr/local/pmd/include
 )
 
 find_library(PMD_LIBRARY pmdaccess2
-  ${PMDDIR}/lib
+  $ENV{PMDDIR}/lib
   /usr/local/pmd/lib
 )
 
 find_path(PMD_PLUGIN_DIR ${PLUGIN_NAMES}
-  ${PMDDIR}/plugins
+  $ENV{PMDDIR}/plugins
   /usr/local/pmd/plugins
 )
 
