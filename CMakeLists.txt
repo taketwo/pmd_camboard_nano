@@ -11,8 +11,6 @@ set(ROS_BUILD_TYPE Debug)
 
 rosbuild_init()
 
-#...: compiler options :........................................................
-
 add_definitions(-Wall)
 
 #...: PMD SDK :.................................................................
@@ -45,6 +43,8 @@ if(NOT PMD_INCLUDE_DIR OR NOT PMD_LIBRARY OR NOT PMD_PLUGIN_DIR)
 endif(NOT PMD_INCLUDE_DIR OR NOT PMD_LIBRARY OR NOT PMD_PLUGIN_DIR)
 
 include_directories(${PMD_INCLUDE_DIR})
+
+add_definitions(-DPMD_PLUGIN_DIR=\\"${PMD_PLUGIN_DIR}/\\")
 
 #...: default paths  :..........................................................
 
