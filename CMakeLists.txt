@@ -13,6 +13,12 @@ rosbuild_init()
 
 add_definitions(-Wall)
 
+#...: dynamic reconfigure :.....................................................
+
+rosbuild_find_ros_package(dynamic_reconfigure)
+include(${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake)
+gencfg()
+
 #...: PMD SDK :.................................................................
 
 if((CMAKE_SIZEOF_VOID_P MATCHES 4) OR (CMAKE_CL_64 MATCHES 0))

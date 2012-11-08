@@ -26,6 +26,9 @@
 
 #include <stdexcept>
 
+namespace pmd_camboard_nano
+{
+
 class PMDException : public std::runtime_error
 {
 
@@ -61,6 +64,8 @@ public:
   { }
 
 };
+
+}
 
 #endif /* PMD_EXCEPTIONS_H */
 

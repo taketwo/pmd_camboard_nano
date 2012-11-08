@@ -48,7 +48,7 @@
 
     <!-- XYZ point cloud (optional) -->
     <node if="$(arg points)"
-          pkg="nodelet" type="nodelet" name="points" output="screen"
+          pkg="nodelet" type="nodelet" name="points"
           args="load depth_image_proc/point_cloud_xyz /$(arg manager)"
           respawn="$(arg respawn)">
           <remap from="image_rect" to="depth/image_rect"/>

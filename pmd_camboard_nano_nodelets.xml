@@ -1,6 +1,6 @@
 <library path="lib/libpmd_camboard_nano_nodelet">
 
-  <class name="pmd_camboard_nano/driver" type="DriverNodelet" base_class_type="nodelet::Nodelet">
+  <class name="pmd_camboard_nano/driver" type="pmd_camboard_nano::DriverNodelet" base_class_type="nodelet::Nodelet">
     <description>
       PMD Camboard Nano driver nodelet.
     </description>

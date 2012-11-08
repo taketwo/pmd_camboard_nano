@@ -30,10 +30,14 @@
 #include "pmd_camboard_nano.h"
 #include "pmd_exceptions.h"
 
+namespace pmd_camboard_nano
+{
+
 PMDCamboardNano::PMDCamboardNano(const std::string& device_serial)
 : handle_(0)
 , num_rows_(0)
 , num_columns_(0)
+, remove_invalid_pixels_(true)
 {
   throwExceptionIfFailed(pmdOpen(&handle_, PMD_PLUGIN_DIR "camboardnano", device_serial.c_str(), PMD_PLUGIN_DIR "camboardnanoproc", ""));
 }
@@ -58,6 +62,7 @@ sensor_msgs::CameraInfoPtr PMDCamboardNano::getCameraInfo()
   throwExceptionIfFailed(pmdGetSourceDataDescription(handle_, &desc));
   num_rows_ = desc.img.numRows;
   num_columns_ = desc.img.numColumns;
+  num_pixels_ = num_rows_ * num_columns_;
   char lens[128];
   throwExceptionIfFailed(pmdSourceCommand(handle_, lens, 128, "GetLensParameters"));
   sensor_msgs::CameraInfoPtr info = boost::make_shared<sensor_msgs::CameraInfo>();
@@ -90,6 +95,11 @@ sensor_msgs::CameraInfoPtr PMDCamboardNano::getCameraInfo()
   return info;
 }
 
+void PMDCamboardNano::setRemoveInvalidPixels(bool remove)
+{
+  remove_invalid_pixels_ = remove;
+}
+
 sensor_msgs::ImagePtr PMDCamboardNano::getDepthImage()
 {
   throwExceptionIfFailed(pmdUpdate(handle_));
@@ -100,8 +110,35 @@ sensor_msgs::ImagePtr PMDCamboardNano::getDepthImage()
   depth_msg->step = depth_msg->width * sizeof(float);
   size_t size = depth_msg->height * depth_msg->step;
   depth_msg->data.resize(size);
-  throwExceptionIfFailed(pmdGetDistances(handle_, reinterpret_cast<float*>(&depth_msg->data[0]), size));
+  float* data = reinterpret_cast<float*>(&depth_msg->data[0]);
+  throwExceptionIfFailed(pmdGetDistances(handle_, data, size));
+  if (remove_invalid_pixels_)
+  {
+    unsigned int flags[num_pixels_];
+    throwExceptionIfFailed(pmdGetFlags(handle_, flags, sizeof(flags)));
+    for (size_t i = 0; i < num_pixels_; i++)
+    {
+      const unsigned int INVALID = PMD_FLAG_INVALID | PMD_FLAG_LOW_SIGNAL | PMD_FLAG_INCONSISTENT;
+      if (flags[i] & INVALID)
+        data[i] = std::numeric_limits<float>::quiet_NaN();
+    }
+  }
   return depth_msg;
+}
+
+unsigned int PMDCamboardNano::getIntegrationTime()
+{
+  unsigned int i;
+  throwExceptionIfFailed(pmdGetIntegrationTime(handle_, &i, 0));
+  return i;
+}
+
+unsigned int PMDCamboardNano::setIntegrationTime(unsigned int time)
+{
+  unsigned int valid;
+  throwExceptionIfFailed(pmdGetValidIntegrationTime(handle_, &valid, 0, CloseTo, time));
+  throwExceptionIfFailed(pmdSetIntegrationTime(handle_, 0, valid));
+  return valid;
 }
 
 void PMDCamboardNano::throwExceptionIfFailed(int result)
@@ -117,5 +154,7 @@ void PMDCamboardNano::throwExceptionIfFailed(int result)
       default: throw PMDException(result, error);
     }
   }
+}
+
 }
 

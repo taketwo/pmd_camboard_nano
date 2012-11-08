@@ -32,6 +32,9 @@
 
 #include <pmdsdk2.h>
 
+namespace pmd_camboard_nano
+{
+
 class PMDCamboardNano
 {
 
@@ -48,7 +51,31 @@ public:
   // TODO: cache camera info?
   sensor_msgs::CameraInfoPtr getCameraInfo();
 
+  /** Set an internal flag which controls whether the invalid pixels are
+    * are filtered out from the output depth images.
+    *
+    * Setting this flag affects the behavior of getDepthImage(). If the flag is
+    * not set, the depth images returned by that function will contain all of
+    * the data received from the camera. If the flag is set, the camera will be
+    * additionaly queried for the "flags" array that describes which of the
+    * pixels are invalid. These pixels will be replaced with quiet NaNs in the
+    * output depth images.
+    *
+    * By default the flag is set to true. */
+  void setRemoveInvalidPixels(bool remove);
+
   sensor_msgs::ImagePtr getDepthImage();
+
+  unsigned int getIntegrationTime();
+
+  /** Set integration time.
+    *
+    * Not all integration times are valid settings. This function will first
+    * query the camera to find the closest valid value for integration time and
+    * then set it.
+    *
+    * @return coerced integration time */
+  unsigned int setIntegrationTime(unsigned int time);
 
 private:
 
@@ -58,8 +85,13 @@ private:
 
   unsigned int num_rows_;
   unsigned int num_columns_;
+  unsigned int num_pixels_;
+
+  bool remove_invalid_pixels_;
 
 };
+
+}
 
 #endif /* PMD_CAMBOARD_NANO_H */
 

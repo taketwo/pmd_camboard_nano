@@ -27,11 +27,16 @@
 #include <ros/console.h>
 #include <nodelet/nodelet.h>
 #include <image_transport/image_transport.h>
+#include <dynamic_reconfigure/server.h>
 
 #include <boost/thread.hpp>
 
+#include <pmd_camboard_nano/PMDConfig.h>
 #include "pmd_camboard_nano.h"
 #include "pmd_exceptions.h"
+
+namespace pmd_camboard_nano
+{
 
 class DriverNodelet : public nodelet::Nodelet
 {
@@ -95,7 +100,9 @@ private:
     // Setup periodic callback to get new data from the camera
     update_timer_ = nh.createTimer(ros::Rate(30).expectedCycleTime(), &DriverNodelet::updateCallback, this);
 
-    // TODO: setup dynamic reconfigure server
+    // Setup dynamic reconfigure server
+    reconfigure_server_.reset(new ReconfigureServer(pn));
+    reconfigure_server_->setCallback(boost::bind(&DriverNodelet::reconfigureCallback, this, _1, _2));
   }
 
   void updateCallback(const ros::TimerEvent& event)
@@ -112,6 +119,13 @@ private:
     depth_publisher_.publish(depth, info);
   }
 
+  void reconfigureCallback(pmd_camboard_nano::PMDConfig &config, uint32_t level)
+  {
+    camera_->setRemoveInvalidPixels(config.remove_invalid_pixels);
+    config.integration_time = camera_->setIntegrationTime(config.integration_time);
+    config_ = config;
+  }
+
 private:
 
   PMDCamboardNano::Ptr camera_;
@@ -119,10 +133,15 @@ private:
   ros::Timer update_timer_;
   image_transport::CameraPublisher depth_publisher_;
   std::string depth_frame_id_;
+  typedef dynamic_reconfigure::Server<pmd_camboard_nano::PMDConfig> ReconfigureServer;
+  boost::shared_ptr<ReconfigureServer> reconfigure_server_;
+  pmd_camboard_nano::PMDConfig config_;
 
 };
 
+}
+
 // Register as a nodelet
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_DECLARE_CLASS (pmd_camboard_nano, driver, DriverNodelet, nodelet::Nodelet);
+PLUGINLIB_DECLARE_CLASS (pmd_camboard_nano, driver, pmd_camboard_nano::DriverNodelet, nodelet::Nodelet);
 
