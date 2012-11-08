@@ -1,5 +1,6 @@
 bin/
 build/
+lib/
 msg_gen/
 srv_gen/
 CMakeFiles/
