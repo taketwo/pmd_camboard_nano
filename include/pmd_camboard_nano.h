@@ -26,11 +26,16 @@
 
 #include <string>
 
+#include <ros/time.h>
 #include <sensor_msgs/distortion_models.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/Image.h>
 
 #include <pmdsdk2.h>
+
+#ifndef PMD_PLUGIN_DIR
+  #error PMD_PLUGIN_DIR should be defined
+#endif
 
 namespace pmd_camboard_nano
 {
@@ -55,25 +60,55 @@ public:
 
   virtual ~PMDCamboardNano();
 
-  std::string getSerialNumber();
+  /** Download the most recent data from the device.
+    *
+    * This function should be called before getDepthImage(),
+    * getAmplitudeImage(),  or getCameraInfo(), otherwise they will return the
+    * old data.
+    *
+    * An expection will be thrown if the interaction with the device failed. */
+  void update();
+
+  /** Get the depth map packaged in a ROS image message.
+    *
+    * Two subsequent calls to this function will return the same images with
+    * the same timestapms unless update() is called in between.
+    *
+    * This function may treat the invalid pixels differently, see
+    * setRemoveInvalidPixels().
+    *
+    * Note: the output message has a blanc frame_id field. */
+  sensor_msgs::ImagePtr getDepthImage();
+
+  /** Get the signal strength of active illumination packaged in a ROS image
+    * message.
+    *
+    * Two subsequent calls to this function will return the same images with
+    * the same timestapms unless update() is called in between.
+    *
+    * This function may treat the invalid pixels differently, see
+    * setRemoveInvalidPixels().
+    *
+    * Note: the output message has a blanc frame_id field. */
+  sensor_msgs::ImagePtr getAmplitudeImage();
 
   // TODO: cache camera info?
   sensor_msgs::CameraInfoPtr getCameraInfo();
 
+  std::string getSerialNumber();
+
   /** Set an internal flag which controls whether the invalid pixels are
-    * are filtered out from the output depth images.
+    * are filtered out from the output depth/amplitude images.
     *
-    * Setting this flag affects the behavior of getDepthImage(). If the flag is
-    * not set, the depth images returned by that function will contain all of
-    * the data received from the camera. If the flag is set, the camera will be
-    * additionaly queried for the "flags" array that describes which of the
-    * pixels are invalid. These pixels will be replaced with quiet NaNs in the
-    * output depth images.
+    * Setting this flag affects the behavior of getDepthImage() and
+    * getAmplitudeImage(). If the flag is not set, the depth/aplitude images
+    * returned by those functions will contain all of the data received from the
+    * camera. If the flag is set, the camera will be additionaly queried for the
+    * "flags" array that describes which of the pixels are invalid. These pixels
+    * will be replaced with quiet NaNs in the output depth/amplitude images.
     *
     * By default the flag is set to true. */
   void setRemoveInvalidPixels(bool remove);
-
-  sensor_msgs::ImagePtr getDepthImage();
 
   unsigned int getIntegrationTime();
 
@@ -88,6 +123,10 @@ public:
 
 private:
 
+  sensor_msgs::ImagePtr createImageMessage();
+
+  void removeInvalidPixels(float* data);
+
   void throwExceptionIfFailed(int result);
 
   PMDHandle handle_;
@@ -97,6 +136,8 @@ private:
   unsigned int num_pixels_;
 
   bool remove_invalid_pixels_;
+
+  ros::Time last_update_time_;
 
 };
 

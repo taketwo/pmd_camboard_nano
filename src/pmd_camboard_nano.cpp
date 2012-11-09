@@ -53,17 +53,35 @@ PMDCamboardNano::~PMDCamboardNano()
     pmdClose(handle_);
 }
 
-std::string PMDCamboardNano::getSerialNumber()
+void PMDCamboardNano::update()
 {
-  char serial[128];
-  throwExceptionIfFailed(pmdSourceCommand(handle_, serial, sizeof(serial), "GetSerialNumber"));
-  return std::string(serial);
+  throwExceptionIfFailed(pmdUpdate(handle_));
+  last_update_time_ = ros::Time::now();
+}
+
+sensor_msgs::ImagePtr PMDCamboardNano::getDepthImage()
+{
+  sensor_msgs::ImagePtr msg = createImageMessage();
+  float* data = reinterpret_cast<float*>(&msg->data[0]);
+  throwExceptionIfFailed(pmdGetDistances(handle_, data, msg->height * msg->step));
+  if (remove_invalid_pixels_)
+    removeInvalidPixels(data);
+  return msg;
+}
+
+sensor_msgs::ImagePtr PMDCamboardNano::getAmplitudeImage()
+{
+  sensor_msgs::ImagePtr msg = createImageMessage();
+  float* data = reinterpret_cast<float*>(&msg->data[0]);
+  throwExceptionIfFailed(pmdGetAmplitudes(handle_, data, msg->height * msg->step));
+  if (remove_invalid_pixels_)
+    removeInvalidPixels(data);
+  return msg;
 }
 
 sensor_msgs::CameraInfoPtr PMDCamboardNano::getCameraInfo()
 {
   PMDDataDescription desc;
-  throwExceptionIfFailed(pmdUpdate(handle_));
   throwExceptionIfFailed(pmdGetSourceDataDescription(handle_, &desc));
   num_rows_ = desc.img.numRows;
   num_columns_ = desc.img.numColumns;
@@ -71,6 +89,7 @@ sensor_msgs::CameraInfoPtr PMDCamboardNano::getCameraInfo()
   char lens[128];
   throwExceptionIfFailed(pmdSourceCommand(handle_, lens, 128, "GetLensParameters"));
   sensor_msgs::CameraInfoPtr info = boost::make_shared<sensor_msgs::CameraInfo>();
+  info->header.stamp = last_update_time_;
   info->width = num_columns_;
   info->height = num_rows_;
   info->distortion_model = sensor_msgs::distortion_models::PLUMB_BOB;
@@ -100,35 +119,16 @@ sensor_msgs::CameraInfoPtr PMDCamboardNano::getCameraInfo()
   return info;
 }
 
+std::string PMDCamboardNano::getSerialNumber()
+{
+  char serial[128];
+  throwExceptionIfFailed(pmdSourceCommand(handle_, serial, sizeof(serial), "GetSerialNumber"));
+  return std::string(serial);
+}
+
 void PMDCamboardNano::setRemoveInvalidPixels(bool remove)
 {
   remove_invalid_pixels_ = remove;
-}
-
-sensor_msgs::ImagePtr PMDCamboardNano::getDepthImage()
-{
-  throwExceptionIfFailed(pmdUpdate(handle_));
-  sensor_msgs::ImagePtr depth_msg = boost::make_shared<sensor_msgs::Image>();
-  depth_msg->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
-  depth_msg->height = num_rows_;
-  depth_msg->width = num_columns_;
-  depth_msg->step = depth_msg->width * sizeof(float);
-  size_t size = depth_msg->height * depth_msg->step;
-  depth_msg->data.resize(size);
-  float* data = reinterpret_cast<float*>(&depth_msg->data[0]);
-  throwExceptionIfFailed(pmdGetDistances(handle_, data, size));
-  if (remove_invalid_pixels_)
-  {
-    unsigned int flags[num_pixels_];
-    throwExceptionIfFailed(pmdGetFlags(handle_, flags, sizeof(flags)));
-    for (size_t i = 0; i < num_pixels_; i++)
-    {
-      const unsigned int INVALID = PMD_FLAG_INVALID | PMD_FLAG_LOW_SIGNAL | PMD_FLAG_INCONSISTENT;
-      if (flags[i] & INVALID)
-        data[i] = std::numeric_limits<float>::quiet_NaN();
-    }
-  }
-  return depth_msg;
 }
 
 unsigned int PMDCamboardNano::getIntegrationTime()
@@ -146,6 +146,29 @@ unsigned int PMDCamboardNano::setIntegrationTime(unsigned int time)
   return valid;
 }
 
+sensor_msgs::ImagePtr PMDCamboardNano::createImageMessage()
+{
+  sensor_msgs::ImagePtr msg = boost::make_shared<sensor_msgs::Image>();
+  msg->header.stamp = last_update_time_;
+  msg->encoding = sensor_msgs::image_encodings::TYPE_32FC1;
+  msg->height = num_rows_;
+  msg->width = num_columns_;
+  msg->step = msg->width * sizeof(float);
+  msg->data.resize(msg->height * msg->step);
+  return msg;
+}
+
+void PMDCamboardNano::removeInvalidPixels(float* data)
+{
+  unsigned int flags[num_pixels_];
+  throwExceptionIfFailed(pmdGetFlags(handle_, flags, sizeof(flags)));
+  for (size_t i = 0; i < num_pixels_; i++)
+  {
+    const unsigned int INVALID = PMD_FLAG_INVALID | PMD_FLAG_LOW_SIGNAL | PMD_FLAG_INCONSISTENT;
+    if (flags[i] & INVALID)
+      data[i] = std::numeric_limits<float>::quiet_NaN();
+  }
+}
 void PMDCamboardNano::throwExceptionIfFailed(int result)
 {
   if (result != PMD_OK)
