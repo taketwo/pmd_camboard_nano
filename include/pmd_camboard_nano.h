@@ -42,7 +42,16 @@ public:
 
   typedef boost::shared_ptr<PMDCamboardNano> Ptr;
 
-  PMDCamboardNano(const std::string& device_serial);
+  /** Try to open a PMD camera with a given serial number.
+    *
+    * If the serial number is an empty string, then the first available camera
+    * will be opened. The PMD SDK driver tends to open any available camera if
+    * the camera with the specified serial number is not present. If this
+    * happens, the constructor will close the opened camera and assume that the
+    * requested camera is not available.
+    *
+    * An exception will be thrown if it is not possible to open the camera. */
+  PMDCamboardNano(const std::string& device_serial = "");
 
   virtual ~PMDCamboardNano();
 

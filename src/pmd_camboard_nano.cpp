@@ -40,6 +40,11 @@ PMDCamboardNano::PMDCamboardNano(const std::string& device_serial)
 , remove_invalid_pixels_(true)
 {
   throwExceptionIfFailed(pmdOpen(&handle_, PMD_PLUGIN_DIR "camboardnano", device_serial.c_str(), PMD_PLUGIN_DIR "camboardnanoproc", ""));
+  if (device_serial != "" && device_serial != getSerialNumber())
+  {
+    pmdClose(handle_);
+    throw PMDCameraNotOpenedException("Opened a wrong camera (serial number does not match the requested).");
+  }
 }
 
 PMDCamboardNano::~PMDCamboardNano()
