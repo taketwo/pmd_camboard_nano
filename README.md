@@ -81,6 +81,12 @@ Use the [dynamic_reconfigure][] package to update this parameters in runtime.
 * `~integration_time` (default: 333)  
   integration time of the camera in us
 
+* `~averaging_frames` (default: 0)  
+  number of frames in sliding averaging window for distance data
+
+* `~bilateral_filter` (default: true)  
+  enable/disable bilateral filtering of the depth images
+
 Misc
 ====
 
@@ -100,7 +106,8 @@ parameters set, and the rest will be zeroed.
 Compatibility
 -------------
 
-This package was tested under Ubuntu Precise x64 with ROS Fuerte.
+This package was tested under Ubuntu Precise x64 with ROS Fuerte and under
+Ubuntu Oneiric x64 with ROS Electric.
 
 Known issues
 ------------

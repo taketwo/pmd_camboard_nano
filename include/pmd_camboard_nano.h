@@ -132,6 +132,19 @@ public:
     * @return coerced integration time */
   unsigned int setIntegrationTime(unsigned int time);
 
+  /** Get the number of frames of in the temporal sliding averaging window.
+    *
+    * If the averaging is disabled this function outputs zero. */
+  unsigned int getAveragingFrames();
+
+  /** Set the number of frames of in the temporal sliding averaging window.
+    *
+    * Passing zero disables temporal averaging. */
+  void setAveragingFrames(unsigned int frames);
+
+  /** Enable/disable bilateral filtering of the distances. */
+  void setBilateralFilter(bool enable);
+
 private:
 
   sensor_msgs::ImagePtr createImageMessage();

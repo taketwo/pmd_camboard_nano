@@ -153,6 +153,41 @@ unsigned int PMDCamboardNano::setIntegrationTime(unsigned int time)
   return valid;
 }
 
+unsigned int PMDCamboardNano::getAveragingFrames()
+{
+  char buffer[64];
+  // First check whether averaging is enabled
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, buffer, 8, "GetAveraging"));
+  if (std::string("On").compare(buffer) != 0)
+    return 0;
+  // Next get the actual number of frames in the averaging window
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, buffer, 8, "GetAveragingFrames"));
+  unsigned int frames = 0;
+  sscanf(buffer, "%u", &frames);
+  return frames;
+}
+
+void PMDCamboardNano::setAveragingFrames(unsigned int frames)
+{
+  char cmd[64];
+  // First enable/disable averaging
+  sprintf(cmd, "SetAveraging %s", (frames != 0 ? "On" : "Off"));
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
+  // Next set the number of frames (if non-zero)
+  if (frames != 0)
+  {
+    sprintf(cmd, "SetAveragingFrames %u", frames);
+    throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
+  }
+}
+
+void PMDCamboardNano::setBilateralFilter(bool enable)
+{
+  char cmd[64];
+  sprintf(cmd, "SetBilateralFilter %s", (enable ? "on" : "off"));
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
+}
+
 sensor_msgs::ImagePtr PMDCamboardNano::createImageMessage()
 {
   sensor_msgs::ImagePtr msg = boost::make_shared<sensor_msgs::Image>();
