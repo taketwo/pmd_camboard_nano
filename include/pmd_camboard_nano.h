@@ -92,8 +92,19 @@ public:
     * Note: the output message has a blanc frame_id field. */
   sensor_msgs::ImagePtr getAmplitudeImage();
 
-  // TODO: cache camera info?
+  /** Get camera calibration parameters packaged in a ROS camera info message.
+    *
+    * If the driver failed to load the calibration data from file, the message
+    * will only have correct width and height fields, and the rest will be set
+    * to zeros.
+    *
+    * The update() function should be called before this one.
+    *
+    * Note: the output message has a blanc frame_id field. */
   sensor_msgs::CameraInfoPtr getCameraInfo();
+
+  /** Check whether the calibration data file was loaded. */
+  bool isCalibrationDataLoaded();
 
   std::string getSerialNumber();
 

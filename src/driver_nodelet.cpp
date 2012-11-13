@@ -81,6 +81,12 @@ private:
       {
         camera_ = boost::make_shared<PMDCamboardNano>(device_serial);
         NODELET_INFO("Opened PMD camera with serial number \"%s\"", camera_->getSerialNumber().c_str());
+        if (camera_->isCalibrationDataLoaded())
+          NODELET_INFO("Calibration data loaded.");
+        else
+          NODELET_WARN("Calibration data was not loaded.");
+        camera_->update();
+        camera_info_ = camera_->getCameraInfo();
       }
       catch (PMDCameraNotOpenedException& e)
       {
@@ -112,16 +118,17 @@ private:
   {
     // Download the most recent data from the device
     camera_->update();
-    // Get new depth data and camera info
-    sensor_msgs::CameraInfoPtr info = camera_->getCameraInfo();
+    // Get new depth and amplitude data
     sensor_msgs::ImagePtr depth = camera_->getDepthImage();
     sensor_msgs::ImagePtr amplitude = camera_->getAmplitudeImage();
-    info->header.frame_id = depth_frame_id_;
+    // Fill in frame ids and update timestamp in camera info
+    camera_info_->header.frame_id = depth_frame_id_;
     depth->header.frame_id = depth_frame_id_;
     amplitude->header.frame_id = depth_frame_id_;
+    camera_info_->header.stamp = depth->header.stamp;
     // Publish both
-    depth_publisher_.publish(depth, info);
-    amplitude_publisher_.publish(amplitude, info);
+    depth_publisher_.publish(depth, camera_info_);
+    amplitude_publisher_.publish(amplitude, camera_info_);
   }
 
   void reconfigureCallback(pmd_camboard_nano::PMDConfig &config, uint32_t level)
@@ -142,6 +149,7 @@ private:
   typedef dynamic_reconfigure::Server<pmd_camboard_nano::PMDConfig> ReconfigureServer;
   boost::shared_ptr<ReconfigureServer> reconfigure_server_;
   pmd_camboard_nano::PMDConfig config_;
+  sensor_msgs::CameraInfoPtr camera_info_;
 
 };
 

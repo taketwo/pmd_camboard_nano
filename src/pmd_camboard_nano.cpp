@@ -119,6 +119,13 @@ sensor_msgs::CameraInfoPtr PMDCamboardNano::getCameraInfo()
   return info;
 }
 
+bool PMDCamboardNano::isCalibrationDataLoaded()
+{
+  char loaded[8];
+  throwExceptionIfFailed(pmdSourceCommand(handle_, loaded, sizeof(loaded), "IsCalibrationDataLoaded"));
+  return std::string("Yes").compare(loaded) == 0;
+}
+
 std::string PMDCamboardNano::getSerialNumber()
 {
   char serial[128];
