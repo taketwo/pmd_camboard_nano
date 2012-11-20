@@ -73,6 +73,7 @@ private:
     pn.param<std::string>("device_serial", device_serial, "");
     pn.param<double>("open_camera_retry_period", open_camera_retry_period, 3);
     pn.param<double>("update_rate", update_rate, 30);
+    pn.param<bool>("points_with_amplitudes", points_with_amplitudes_, false);
 
     // Open camera
     while (!camera_)
@@ -102,6 +103,7 @@ private:
     ros::NodeHandle amplitude_nh(nh, "amplitude");
     image_transport::ImageTransport amplitude_it(amplitude_nh);
     amplitude_publisher_ = amplitude_it.advertiseCamera("image", 1);
+    points_publisher_ = nh.advertise<sensor_msgs::PointCloud2>("points", 1);
 
     // Setup periodic callback to get new data from the camera
     update_timer_ = nh.createTimer(ros::Rate(update_rate).expectedCycleTime(), &DriverNodelet::updateCallback, this);
@@ -115,17 +117,33 @@ private:
   {
     // Download the most recent data from the device
     camera_->update();
-    // Get new depth and amplitude data
-    sensor_msgs::ImagePtr depth = camera_->getDepthImage();
-    sensor_msgs::ImagePtr amplitude = camera_->getAmplitudeImage();
-    // Fill in frame ids and update timestamp in camera info
     camera_info_->header.frame_id = depth_frame_id_;
-    depth->header.frame_id = depth_frame_id_;
-    amplitude->header.frame_id = depth_frame_id_;
-    camera_info_->header.stamp = depth->header.stamp;
-    // Publish both
-    depth_publisher_.publish(depth, camera_info_);
-    amplitude_publisher_.publish(amplitude, camera_info_);
+    // Get new data and publish for the topics that have subscribers
+    // Depth
+    if (depth_publisher_.getNumSubscribers() > 0)
+    {
+      sensor_msgs::ImagePtr depth = camera_->getDepthImage();
+      depth->header.frame_id = depth_frame_id_;
+      camera_info_->header.stamp = depth->header.stamp;
+      depth_publisher_.publish(depth, camera_info_);
+    }
+    // Amplitude
+    if (amplitude_publisher_.getNumSubscribers() > 0)
+    {
+      sensor_msgs::ImagePtr amplitude = camera_->getAmplitudeImage();
+      amplitude->header.frame_id = depth_frame_id_;
+      camera_info_->header.stamp = amplitude->header.stamp;
+      amplitude_publisher_.publish(amplitude, camera_info_);
+    }
+    // Points
+    if (points_publisher_.getNumSubscribers() > 0)
+    {
+      sensor_msgs::PointCloud2Ptr points = points_with_amplitudes_ ?
+                                           camera_->getPointCloudWithAmplitudes() :
+                                           camera_->getPointCloud();
+      points->header.frame_id = depth_frame_id_;
+      points_publisher_.publish(points);
+    }
   }
 
   void reconfigureCallback(pmd_camboard_nano::PMDConfig &config, uint32_t level)
@@ -172,11 +190,13 @@ private:
   ros::Timer update_timer_;
   image_transport::CameraPublisher depth_publisher_;
   image_transport::CameraPublisher amplitude_publisher_;
+  ros::Publisher points_publisher_;
   std::string depth_frame_id_;
   typedef dynamic_reconfigure::Server<pmd_camboard_nano::PMDConfig> ReconfigureServer;
   boost::shared_ptr<ReconfigureServer> reconfigure_server_;
   pmd_camboard_nano::PMDConfig config_;
   sensor_msgs::CameraInfoPtr camera_info_;
+  bool points_with_amplitudes_;
 
 };
 

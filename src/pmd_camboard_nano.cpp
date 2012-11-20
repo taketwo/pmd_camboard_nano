@@ -79,6 +79,41 @@ sensor_msgs::ImagePtr PMDCamboardNano::getAmplitudeImage()
   return msg;
 }
 
+sensor_msgs::PointCloud2Ptr PMDCamboardNano::getPointCloud()
+{
+  sensor_msgs::PointCloud2Ptr msg = createPointCloud2Message(false);
+  float* data = reinterpret_cast<float*>(&msg->data[0]);
+  throwExceptionIfFailed(pmdGet3DCoordinates(handle_, data, msg->height * msg->row_step));
+  if (remove_invalid_pixels_)
+    removeInvalidPixels(data + 2, 3);
+  return msg;
+}
+
+sensor_msgs::PointCloud2Ptr PMDCamboardNano::getPointCloudWithAmplitudes()
+{
+  sensor_msgs::PointCloud2Ptr msg = createPointCloud2Message(true);
+  float* msg_data = reinterpret_cast<float*>(&msg->data[0]);
+  size_t size = num_rows_ * num_columns_;
+  float* pts_data = new float[size * 3];
+  float* amp_data = new float[size];
+  throwExceptionIfFailed(pmdGet3DCoordinates(handle_, pts_data, size * 3 * sizeof(float)));
+  throwExceptionIfFailed(pmdGetAmplitudes(handle_, amp_data, size * sizeof(float)));
+  if (remove_invalid_pixels_)
+    removeInvalidPixels(pts_data + 2, 3);
+
+  for (size_t i = 0; i < num_rows_ * num_columns_; i++)
+  {
+    msg_data[0] = pts_data[0];
+    msg_data[1] = pts_data[1];
+    msg_data[2] = pts_data[2];
+    msg_data[3] = amp_data[0];
+    pts_data += 3;
+    amp_data += 1;
+    msg_data += 4;
+  }
+  return msg;
+}
+
 sensor_msgs::CameraInfoPtr PMDCamboardNano::getCameraInfo()
 {
   PMDDataDescription desc;
@@ -222,7 +257,41 @@ sensor_msgs::ImagePtr PMDCamboardNano::createImageMessage()
   return msg;
 }
 
-void PMDCamboardNano::removeInvalidPixels(float* data)
+sensor_msgs::PointCloud2Ptr PMDCamboardNano::createPointCloud2Message(bool with_amplitude)
+{
+  sensor_msgs::PointCloud2Ptr msg = boost::make_shared<sensor_msgs::PointCloud2>();
+  msg->header.stamp = last_update_time_;
+  msg->is_dense = false;
+  msg->is_bigendian = false;
+  msg->height = num_rows_;
+  msg->width = num_columns_;
+  msg->fields.resize(with_amplitude ? 4 : 3);
+  msg->fields[0].name = "x";
+  msg->fields[0].offset = 0;
+  msg->fields[0].datatype = 7;
+  msg->fields[0].count = 1;
+  msg->fields[1].name = "y";
+  msg->fields[1].offset = 4;
+  msg->fields[1].datatype = 7;
+  msg->fields[1].count = 1;
+  msg->fields[2].name = "z";
+  msg->fields[2].offset = 8;
+  msg->fields[2].datatype = 7;
+  msg->fields[2].count = 1;
+  if (with_amplitude)
+  {
+    msg->fields[3].name = "amp";
+    msg->fields[3].offset = 12;
+    msg->fields[3].datatype = 7;
+    msg->fields[3].count = 1;
+  }
+  msg->point_step = sizeof(float) * msg->fields.size();
+  msg->row_step = msg->width * msg->point_step;
+  msg->data.resize(msg->height * msg->row_step);
+  return msg;
+}
+
+void PMDCamboardNano::removeInvalidPixels(float* data, size_t step)
 {
   unsigned int flags[num_pixels_];
   throwExceptionIfFailed(pmdGetFlags(handle_, flags, sizeof(flags)));
@@ -230,7 +299,8 @@ void PMDCamboardNano::removeInvalidPixels(float* data)
   {
     const unsigned int INVALID = PMD_FLAG_INVALID | PMD_FLAG_LOW_SIGNAL | PMD_FLAG_INCONSISTENT;
     if (flags[i] & INVALID)
-      data[i] = std::numeric_limits<float>::quiet_NaN();
+      *data = std::numeric_limits<float>::quiet_NaN();
+    data += step;
   }
 }
 void PMDCamboardNano::throwExceptionIfFailed(int result)

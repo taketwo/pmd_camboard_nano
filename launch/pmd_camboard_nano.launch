@@ -13,9 +13,13 @@
 
   <arg name="manager" value="$(arg camera)_nodelet_manager"/>
 
+  <!-- Enable depth/amplitude image rectification. If set to true, appropriate
+       nodelets will be loaded. -->
   <arg name="rectify" default="true"/>
 
-  <arg name="points" default="true"/>
+  <!-- Augment the points in generated point clouds with the amplitude (signal
+       strength) values perceived by the sensor. -->
+  <arg name="points_with_amplitudes" default="false"/>
 
   <arg name="respawn" default="true"/>
 
@@ -46,14 +50,17 @@
           <param name="interpolation" value="0"/>
     </node>
 
-    <!-- XYZ point cloud (optional) -->
-    <node if="$(arg points)"
-          pkg="nodelet" type="nodelet" name="points"
-          args="load depth_image_proc/point_cloud_xyz /$(arg manager)"
+    <!-- Rectified amplitude image (optional) -->
+    <node if="$(arg rectify)"
+          pkg="nodelet" type="nodelet" name="rectify_amplitude"
+          args="load image_proc/rectify /$(arg manager)"
           respawn="$(arg respawn)">
-          <remap from="image_rect" to="depth/image_rect"/>
-          <remap from="camera_info" to="depth/camera_info"/>
-          <remap from="points" to="depth/points"/>
+          <remap from="image_mono" to="amplitude/image"/>
+          <remap from="camera_info" to="amplitude/camera_info"/>
+          <remap from="image_rect" to="amplitude/image_rect"/>
+          <!-- Use nearest neighbor (0) interpolation so we don't streak across
+               depth boundaries -->
+          <param name="interpolation" value="0"/>
     </node>
 
   </group>
