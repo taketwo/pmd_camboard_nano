@@ -114,7 +114,20 @@ sensor_msgs::CameraInfoPtr PMDCamboardNano::getCameraInfo()
   }
   else
   {
-    // TODO: are there any sensible defaults?
+    // These numbers come from a forum post at www.cayim.com
+    // https://www.cayim.com/forum/index.php?/topic/33-intrinsics-and-calibration/#entry125
+    // Seems like most (all?) cameras are shipped with these calibration parameters.
+    info->D[0] = -0.222609;
+    info->D[1] = 0.063022;
+    info->D[2] = 0.002865;
+    info->D[3] = -0.001446;
+    info->D[4] = 0;
+    info->K[0] = info->P[0] = 104.119;
+    info->K[2] = info->P[2] = 81.9494;
+    info->K[4] = info->P[5] = 103.588;
+    info->K[5] = info->P[6] = 59.4392;
+    info->K[8] = info->P[10] = 1.0;
+    info->R[0] = info->R[4] = info->R[8] = 1.0;
   }
   return info;
 }
