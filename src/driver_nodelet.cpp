@@ -81,10 +81,7 @@ private:
       {
         camera_ = boost::make_shared<PMDCamboardNano>(device_serial);
         NODELET_INFO("Opened PMD camera with serial number \"%s\"", camera_->getSerialNumber().c_str());
-        if (camera_->isCalibrationDataLoaded())
-          NODELET_INFO("Calibration data loaded.");
-        else
-          NODELET_WARN("Calibration data was not loaded.");
+        loadCalibrationData();
         camera_->update();
         camera_info_ = camera_->getCameraInfo();
       }
@@ -141,6 +138,34 @@ private:
   }
 
 private:
+
+  void loadCalibrationData()
+  {
+    ros::NodeHandle& pn = getPrivateNodeHandle();
+    std::string calibration_file;
+    // Try to load a specific calibration file (if requested)
+    if (pn.getParam("calibration_file", calibration_file))
+    {
+      if (camera_->loadCalibrationData(calibration_file))
+      {
+        NODELET_INFO("Loaded calibration data from \"%s\"", calibration_file.c_str());
+        return;
+      }
+      else
+      {
+        NODELET_WARN("Failed to load calibration data from \"%s\"", calibration_file.c_str());
+      }
+    }
+    // Check whether the calibration data was loaded from the default location
+    if (camera_->isCalibrationDataLoaded())
+    {
+      NODELET_INFO("Loaded calibration data from default location (\"%s.dat\" in the working directory)", camera_->getSerialNumber().c_str());
+    }
+    else
+    {
+      NODELET_WARN("Will use default calibration data");
+    }
+  }
 
   PMDCamboardNano::Ptr camera_;
   boost::thread init_thread_;

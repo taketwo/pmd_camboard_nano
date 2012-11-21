@@ -62,6 +62,9 @@ pmd_camboard_nano::DriverNodelet
 * `~device_serial` (default: "")  
   specifies which device to open, empty means any
 
+* `~calibration_file`  
+  path to the file with camera calibration data
+
 * `~depth_frame_id` (default: "/camera_depth_frame_id")  
   the tf frame of depth camera
 
@@ -93,15 +96,19 @@ Misc
 Camera calibration
 ------------------
 
-The PMD plugin loads the calibration data from a file (provided with the
-camera), which must be located within the directory from where the application
-is started. If you are using the `pmd_camboard_nano.launch` file, the working
+By default the PMD plugin loads the calibration data from a file (provided with
+the camera), which must be located within the working directory of the
+application and have a name composed of the device serial number and *".dat"*
+extension. If you are using the `pmd_camboard_nano.launch` file, the working
 directory of the driver nodelet will be `~/.ros`. You therefore have to have a
 copy of the calibration file there.
 
-If the calibration data was not loaded by the PMD plugin, then the camera info
-messages produced by the driver nodelet will only have width and height
-parameters set, and the rest will be zeroed.
+Alternatively, you can specify the location of the calibration data file as a
+parameter of the nodelet (`~calibration_file`).
+
+If the PMD plugin failed to load the calibration data, then the camera info
+messages produced by the driver nodelet will be filled with the values that
+*seem* to be "default" (see [this forum topic][calibration_forum_topic]).
 
 Compatibility
 -------------
@@ -122,3 +129,4 @@ Workaround: set display style **NOT** to Points, e.g. to BillboardSpheres.
 [PMD]: http://www.pmdtec.com/products-services/pmdvisionr-cameras/pmdvisionr-camboard-nano/
 [openni_launch]: http://ros.org/wiki/openni_launch
 [dynamic_reconfigure]: http://ros.org/wiki/dynamic_reconfigure
+[calibration_forum_topic]: https://www.cayim.com/forum/index.php?/topic/33-intrinsics-and-calibration/#entry125

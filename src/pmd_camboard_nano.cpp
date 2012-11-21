@@ -132,6 +132,15 @@ sensor_msgs::CameraInfoPtr PMDCamboardNano::getCameraInfo()
   return info;
 }
 
+bool PMDCamboardNano::loadCalibrationData(const std::string& filename)
+{
+  char result[128];
+  std::string cmd("LoadCalibrationData ");
+  cmd.append(filename);
+  throwExceptionIfFailed(pmdSourceCommand(handle_, result, sizeof(result), cmd.c_str()));
+  return std::string("OK").compare(result) == 0;
+}
+
 bool PMDCamboardNano::isCalibrationDataLoaded()
 {
   char loaded[8];

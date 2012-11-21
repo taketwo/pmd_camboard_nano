@@ -103,6 +103,11 @@ public:
     * Note: the output message has a blanc frame_id field. */
   sensor_msgs::CameraInfoPtr getCameraInfo();
 
+  /** Load calibration data from the given file.
+    *
+    * @return a flag indicating whether the file was successfully loaded. */
+  bool loadCalibrationData(const std::string& filename);
+
   /** Check whether the calibration data file was loaded. */
   bool isCalibrationDataLoaded();
 
