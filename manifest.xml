@@ -12,8 +12,6 @@
   <depend package="image_transport"/>
   <depend package="nodelet"/>
   <depend package="dynamic_reconfigure"/>
-  <depend package="depth_image_proc"/>
-  <depend package="image_proc"/>
   <depend package="tf"/>
 
   <export>
