@@ -104,7 +104,7 @@ private:
     amplitude_publisher_ = amplitude_it.advertiseCamera("image", 1);
 
     // Setup periodic callback to get new data from the camera
-    update_timer_ = nh.createTimer(ros::Rate(30).expectedCycleTime(), &DriverNodelet::updateCallback, this);
+    update_timer_ = nh.createTimer(ros::Rate(update_rate).expectedCycleTime(), &DriverNodelet::updateCallback, this);
 
     // Setup dynamic reconfigure server
     reconfigure_server_.reset(new ReconfigureServer(pn));
