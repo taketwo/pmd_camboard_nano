@@ -69,7 +69,7 @@ private:
     std::string device_serial;
     double open_camera_retry_period;
     double update_rate;
-    pn.param<std::string>("depth_frame_id", depth_frame_id_, "/camera_depth_optical_frame");
+    pn.param<std::string>("frame_id", frame_id_, "/camera_optical_frame");
     pn.param<std::string>("device_serial", device_serial, "");
     pn.param<double>("open_camera_retry_period", open_camera_retry_period, 3);
     pn.param<double>("update_rate", update_rate, 30);
@@ -117,13 +117,13 @@ private:
   {
     // Download the most recent data from the device
     camera_->update();
-    camera_info_->header.frame_id = depth_frame_id_;
+    camera_info_->header.frame_id = frame_id_;
     // Get new data and publish for the topics that have subscribers
     // Depth
     if (depth_publisher_.getNumSubscribers() > 0)
     {
       sensor_msgs::ImagePtr depth = camera_->getDepthImage();
-      depth->header.frame_id = depth_frame_id_;
+      depth->header.frame_id = frame_id_;
       camera_info_->header.stamp = depth->header.stamp;
       depth_publisher_.publish(depth, camera_info_);
     }
@@ -131,7 +131,7 @@ private:
     if (amplitude_publisher_.getNumSubscribers() > 0)
     {
       sensor_msgs::ImagePtr amplitude = camera_->getAmplitudeImage();
-      amplitude->header.frame_id = depth_frame_id_;
+      amplitude->header.frame_id = frame_id_;
       camera_info_->header.stamp = amplitude->header.stamp;
       amplitude_publisher_.publish(amplitude, camera_info_);
     }
@@ -141,7 +141,7 @@ private:
       sensor_msgs::PointCloud2Ptr points = points_with_amplitudes_ ?
                                            camera_->getPointCloudWithAmplitudes() :
                                            camera_->getPointCloud();
-      points->header.frame_id = depth_frame_id_;
+      points->header.frame_id = frame_id_;
       points_publisher_.publish(points);
     }
   }
@@ -191,7 +191,7 @@ private:
   image_transport::CameraPublisher depth_publisher_;
   image_transport::CameraPublisher amplitude_publisher_;
   ros::Publisher points_publisher_;
-  std::string depth_frame_id_;
+  std::string frame_id_;
   typedef dynamic_reconfigure::Server<pmd_camboard_nano::PMDConfig> ReconfigureServer;
   boost::shared_ptr<ReconfigureServer> reconfigure_server_;
   pmd_camboard_nano::PMDConfig config_;

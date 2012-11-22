@@ -69,8 +69,8 @@ pmd_camboard_nano::DriverNodelet
 * `~calibration_file`  
   path to the file with camera calibration data
 
-* `~depth_frame_id` (default: "/camera_depth_frame_id")  
-  the tf frame of depth camera
+* `~frame_id` (default: "/camera_optical_frame")  
+  the tf frame of the camera
 
 * `~open_camera_retry_period` (default: 3)  
   how often (seconds) to try to open camera during the startup

@@ -5,7 +5,7 @@
        into the "camera" namespace, and it is prepended to tf frame ids. -->
   <arg name="camera" default="camera"/>
 
-  <arg name="depth_frame_id" default="/$(arg camera)_depth_optical_frame"/>
+  <arg name="depth_frame_id" default="/$(arg camera)_optical_frame"/>
 
   <!-- Serial number of the device to open. If this argument is an empty string,
        the first available device will be opened. -->
@@ -69,9 +69,9 @@
   <arg name="optical_rotate" value="0 0 0 -1.5707963267948966 0 -1.5707963267948966"/>
 
   <node pkg="tf" type="static_transform_publisher" name="$(arg camera)_base_link1"
-        args="0 0 0 0 0 0 /$(arg camera)_link /$(arg camera)_depth_frame 100"/>
+        args="0 0 0 0 0 0 /$(arg camera)_link /$(arg camera)_frame 100"/>
 
   <node pkg="tf" type="static_transform_publisher" name="$(arg camera)_base_link2"
-        args="$(arg optical_rotate) /$(arg camera)_depth_frame /$(arg camera)_depth_optical_frame 100"/>
+        args="$(arg optical_rotate) /$(arg camera)_frame /$(arg camera)_optical_frame 100"/>
 
 </launch>
