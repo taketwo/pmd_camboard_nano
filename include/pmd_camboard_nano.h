@@ -194,8 +194,29 @@ public:
     * Passing zero disables temporal averaging. */
   void setAveragingFrames(unsigned int frames);
 
+  /** Enable/disable the signal strength check during the calculation of the
+    * flag image. */
+  void setSignalStrengthCheck(bool enable);
+
+  /** Get the current threshold value for the signal strength check. */
+  unsigned int getSignalStrengthThreshold();
+
+  /** Set the amplitude threshold for the signal strength check.
+    *
+    * Higher values mean higher sensitivity and more pixels flagged invalid. */
+  void setSignalStrengthThreshold(unsigned int amplitude);
+
   /** Enable/disable bilateral filtering of the distances. */
   void setBilateralFilter(bool enable);
+
+  /** Set the spatial sigma parameter of the bilateral filter. */
+  void setBilateralFilterSigmaSpatial(double sigma);
+
+  /** Enable/disable enhanced bilateral filtering of the distances.
+    *
+    *  By incorporating precomputed flags into the bilateral filter it becomes
+    *  more robust against motion blur. */
+  void setBilateralFilterEnhanceImage(bool enable);
 
 private:
 

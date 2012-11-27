@@ -162,7 +162,11 @@ private:
     camera_->setRemoveInvalidPixels(config.remove_invalid_pixels);
     config.integration_time = camera_->setIntegrationTime(config.integration_time);
     camera_->setAveragingFrames(config.averaging_frames);
+    camera_->setSignalStrengthCheck(config.signal_strength_check);
+    camera_->setSignalStrengthThreshold(config.signal_strength_threshold);
     camera_->setBilateralFilter(config.bilateral_filter);
+    camera_->setBilateralFilterSigmaSpatial(config.sigma_spatial);
+    camera_->setBilateralFilterEnhanceImage(config.bilateral_filter_enhance_image);
     config_ = config;
   }
 

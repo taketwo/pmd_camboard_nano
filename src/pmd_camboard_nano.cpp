@@ -253,10 +253,47 @@ void PMDCamboardNano::setAveragingFrames(unsigned int frames)
   }
 }
 
+void PMDCamboardNano::setSignalStrengthCheck(bool enable)
+{
+  char cmd[64];
+  sprintf(cmd, "SetSignalStrengthCheck %s", (enable ? "on" : "off"));
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
+}
+
+void PMDCamboardNano::setSignalStrengthThreshold(unsigned int amplitude)
+{
+  char cmd[64];
+  sprintf(cmd, "SetSignalStrengthThreshold %u", amplitude);
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
+}
+
+unsigned int PMDCamboardNano::getSignalStrengthThreshold()
+{
+  char buffer[64];
+  unsigned int threshold = 0;
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, buffer, 8, "GetSignalStrengthThreshold"));
+  sscanf(buffer, "%u", &threshold);
+  return threshold;
+}
+
 void PMDCamboardNano::setBilateralFilter(bool enable)
 {
   char cmd[64];
   sprintf(cmd, "SetBilateralFilter %s", (enable ? "on" : "off"));
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
+}
+
+void PMDCamboardNano::setBilateralFilterSigmaSpatial(double sigma)
+{
+  char cmd[64];
+  sprintf(cmd, "SetBilateralFilterSigmaSpatial %.2f", sigma);
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
+}
+
+void PMDCamboardNano::setBilateralFilterEnhanceImage(bool enable)
+{
+  char cmd[64];
+  sprintf(cmd, "SetBilateralFilterEnhanceImage %s", (enable ? "on" : "off"));
   throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
 }
 
