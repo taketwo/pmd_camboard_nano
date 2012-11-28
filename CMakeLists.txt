@@ -68,3 +68,10 @@ rosbuild_add_library(pmd_camboard_nano_nodelet
 target_link_libraries(pmd_camboard_nano_nodelet
   ${PMD_LIBRARY}
 )
+
+#...: target executables :......................................................
+
+#...: driver_node
+rosbuild_add_executable(pmd_camboard_nano_node
+  src/driver_node.cpp
+)
