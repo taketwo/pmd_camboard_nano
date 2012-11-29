@@ -5,7 +5,7 @@
        into the "camera" namespace, and it is prepended to tf frame ids. -->
   <arg name="camera" default="camera"/>
 
-  <arg name="depth_frame_id" default="/$(arg camera)_optical_frame"/>
+  <arg name="frame_id" default="/$(arg camera)_optical_frame"/>
 
   <!-- Serial number of the device to open. If this argument is an empty string,
        the first available device will be opened. -->
@@ -34,7 +34,7 @@
     <node pkg="nodelet" type="nodelet" name="driver" output="screen"
           args="load pmd_camboard_nano/driver /$(arg manager)">
           <param name="device_serial" value="$(arg device_serial)"/>
-          <param name="depth_frame_id" value="$(arg depth_frame_id)"/>
+          <param name="frame_id" value="$(arg frame_id)"/>
     </node>
 
     <!-- Rectified depth image (optional) -->
