@@ -6,9 +6,10 @@ depth sensor.
 
 The driver is packaged as a nodelet, therefore it may be directly merged inside
 another ROS node to avoid unnecessary data copying. On the same time, it may be
-started standalone or withing a nodelet manager. The depth, amplitude, and point
-cloud data are retrieved from the device and processed only if there are
-subscribers on the corresponding topics.
+started standalone or withing a nodelet manager. The distance, depth (see
+"Distance vs. depth images" section), amplitude, and point cloud data are
+retrieved from the device and processed only if there are subscribers on the
+corresponding topics.
 
 The `pmd_camboard_nano.launch` script (inspired by the [openni_launch][] stack
 in ROS) starts the driver nodelet along with the image rectification nodelets.
@@ -47,14 +48,22 @@ pmd_camboard_nano::DriverNodelet
 
 ### Published topics
 
+* `distance/camera_info` (*sensor_msgs/CameraInfo*)  
+  camera calibration and metadata (see "Camera calibration" section)
+
+* `distance/image` (*sensor_msgs/Image*)  
+  raw distances from the optical center of the device to scene points, contains
+  `float` distances (mm)
+
 * `depth/camera_info` (*sensor_msgs/CameraInfo*)  
-  camera calibration and metadata (see Camera calibration section)
+  camera calibration and metadata (see "Camera calibration" section)
 
 * `depth/image` (*sensor_msgs/Image*)  
-  raw distances from the device, contains `float` depths in mm
+  depths of scene points (distances along the camera optical axis) from the
+  device, contains `float` depths in mm
 
 * `amplitude/camera_info` (*sensor_msgs/CameraInfo*)  
-  camera calibration and metadata (see Camera calibration section)
+  camera calibration and metadata (see "Camera calibration" section)
 
 * `amplitude/image` (*sensor_msgs/Image*)  
   signal strengths of active illumination
@@ -117,6 +126,21 @@ parameter of the nodelet (`~calibration_file`).
 If the PMD plugin failed to load the calibration data, then the camera info
 messages produced by the driver nodelet will be filled with the values that
 *seem* to be "default" (see [this forum topic][calibration_forum_topic]).
+
+
+Distance vs. depth images
+-------------------------
+
+The distance data provided by the PMD SDK driver is actually the distances from
+the optical center of the camera to the scene points. Other cameras (e.g.
+Microsoft Kinect) output depth maps that are composed of distances from the
+cameras principal plane to the scene points along the optical axis. In other
+words, their depth image consists of z-coordinates of the scene points in the
+cameras coordinate frame.
+
+This driver publishes both distance images (as output by the PMD SDK driver),
+and "Kinect-style" depth images, computed by multiplying the distances with the
+corresponding direction vectors.
 
 Compatibility
 -------------

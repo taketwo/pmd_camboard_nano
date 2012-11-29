@@ -13,8 +13,8 @@
 
   <arg name="manager" value="$(arg camera)_nodelet_manager"/>
 
-  <!-- Enable depth/amplitude image rectification. If set to true, appropriate
-       nodelets will be loaded. -->
+  <!-- Enable distance/depth/amplitude image rectification. If set to true,
+       appropriate nodelets will be loaded. -->
   <arg name="rectify" default="true"/>
 
   <!-- Augment the points in generated point clouds with the amplitude (signal
@@ -35,6 +35,19 @@
           args="load pmd_camboard_nano/driver /$(arg manager)">
           <param name="device_serial" value="$(arg device_serial)"/>
           <param name="frame_id" value="$(arg frame_id)"/>
+    </node>
+
+    <!-- Rectified distance image (optional) -->
+    <node if="$(arg rectify)"
+          pkg="nodelet" type="nodelet" name="rectify_distance"
+          args="load image_proc/rectify /$(arg manager)"
+          respawn="$(arg respawn)">
+          <remap from="image_mono" to="distance/image"/>
+          <remap from="camera_info" to="distance/camera_info"/>
+          <remap from="image_rect" to="distance/image_rect"/>
+          <!-- Use nearest neighbor (0) interpolation so we don't streak across
+               depth boundaries -->
+          <param name="interpolation" value="0"/>
     </node>
 
     <!-- Rectified depth image (optional) -->
@@ -58,9 +71,6 @@
           <remap from="image_mono" to="amplitude/image"/>
           <remap from="camera_info" to="amplitude/camera_info"/>
           <remap from="image_rect" to="amplitude/image_rect"/>
-          <!-- Use nearest neighbor (0) interpolation so we don't streak across
-               depth boundaries -->
-          <param name="interpolation" value="0"/>
     </node>
 
   </group>

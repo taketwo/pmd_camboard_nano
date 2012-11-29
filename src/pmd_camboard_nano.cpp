@@ -45,6 +45,7 @@ PMDCamboardNano::PMDCamboardNano(const std::string& device_serial)
     pmdClose(handle_);
     throw PMDCameraNotOpenedException("Opened a wrong camera (serial number does not match the requested).");
   }
+  getDirectionVectors();
 }
 
 PMDCamboardNano::~PMDCamboardNano()
@@ -59,11 +60,25 @@ void PMDCamboardNano::update()
   last_update_time_ = ros::Time::now();
 }
 
+sensor_msgs::ImagePtr PMDCamboardNano::getDistanceImage()
+{
+  sensor_msgs::ImagePtr msg = createImageMessage();
+  float* data = reinterpret_cast<float*>(&msg->data[0]);
+  throwExceptionIfFailed(pmdGetDistances(handle_, data, msg->height * msg->step));
+  if (remove_invalid_pixels_)
+    removeInvalidPixels(data);
+  return msg;
+}
+
 sensor_msgs::ImagePtr PMDCamboardNano::getDepthImage()
 {
   sensor_msgs::ImagePtr msg = createImageMessage();
   float* data = reinterpret_cast<float*>(&msg->data[0]);
   throwExceptionIfFailed(pmdGetDistances(handle_, data, msg->height * msg->step));
+  // Divide distances with direction vectors
+  for (size_t i = 0; i < num_pixels_; i++)
+    data[i] /= direction_vectors_.get()[i];
+  // Remove invalid pixels if requested
   if (remove_invalid_pixels_)
     removeInvalidPixels(data);
   return msg;
@@ -303,6 +318,30 @@ void PMDCamboardNano::removeInvalidPixels(float* data, size_t step)
     data += step;
   }
 }
+
+void PMDCamboardNano::getDirectionVectors()
+{
+  update();
+  // Get the description of raw source data
+  size_t size;
+  PMDDataDescription desc;
+  throwExceptionIfFailed(pmdGetSourceDataSize(handle_, &size));
+  throwExceptionIfFailed(pmdGetSourceDataDescription(handle_, &desc));
+  // Allocate memory for the source data and processed data
+  size_t num_pixels = desc.img.numRows * desc.img.numColumns;
+  boost::scoped_ptr<char> data(new char[size]);
+  boost::scoped_ptr<float> distances(new float[num_pixels]);
+  boost::scoped_ptr<float> points(new float[num_pixels * 3]);
+  // Get source data and process it
+  throwExceptionIfFailed(pmdGetSourceData(handle_, data.get(), size));
+  throwExceptionIfFailed(pmdCalcDistances(handle_, distances.get(), num_pixels * sizeof(float), desc, data.get()));
+  throwExceptionIfFailed(pmdCalc3DCoordinates(handle_, points.get(), num_pixels * sizeof(float) * 3, desc, data.get()));
+  // Allocate memory and compute direction vectors
+  direction_vectors_.reset(new double[num_pixels]);
+  for (size_t i = 0; i < num_pixels; i++)
+    direction_vectors_.get()[i] = distances.get()[i] / points.get()[i * 3 + 2];
+}
+
 void PMDCamboardNano::throwExceptionIfFailed(int result)
 {
   if (result != PMD_OK)

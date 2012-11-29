@@ -97,6 +97,9 @@ private:
     }
 
     // Advertise topics
+    ros::NodeHandle distance_nh(nh, "distance");
+    image_transport::ImageTransport distance_it(distance_nh);
+    distance_publisher_ = distance_it.advertiseCamera("image", 1);
     ros::NodeHandle depth_nh(nh, "depth");
     image_transport::ImageTransport depth_it(depth_nh);
     depth_publisher_ = depth_it.advertiseCamera("image", 1);
@@ -119,6 +122,14 @@ private:
     camera_->update();
     camera_info_->header.frame_id = frame_id_;
     // Get new data and publish for the topics that have subscribers
+    // Distance
+    if (distance_publisher_.getNumSubscribers() > 0)
+    {
+      sensor_msgs::ImagePtr distance = camera_->getDistanceImage();
+      distance->header.frame_id = frame_id_;
+      camera_info_->header.stamp = distance->header.stamp;
+      distance_publisher_.publish(distance, camera_info_);
+    }
     // Depth
     if (depth_publisher_.getNumSubscribers() > 0)
     {
@@ -188,6 +199,7 @@ private:
   PMDCamboardNano::Ptr camera_;
   boost::thread init_thread_;
   ros::Timer update_timer_;
+  image_transport::CameraPublisher distance_publisher_;
   image_transport::CameraPublisher depth_publisher_;
   image_transport::CameraPublisher amplitude_publisher_;
   ros::Publisher points_publisher_;
