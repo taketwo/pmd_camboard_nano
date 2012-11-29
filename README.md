@@ -36,7 +36,8 @@ You also need to copy the file `10-pmd.rules` provided with the SDK to
 Package installation
 --------------------
 
-Clone this repository into a folder that is in your `$ROS_PACKAGE_PATH`.
+Clone this repository into a folder that is in your `$ROS_PACKAGE_PATH` and run
+`rosmake pmd_camboard_nano`.
 
 ROS API
 =======
@@ -126,11 +127,15 @@ Ubuntu Oneiric x64 with ROS Electric.
 Known issues
 ------------
 
-If `pmd_camboard_nano.launch` is started with *points* argument set to `true`
-(which means calculate and publish point clouds), RViz may crash when trying to
-display the messages in the `/points` topic.
+This package was tested on multiple PCs and generally worked fine, however on
+one Lenovo laptop the following problems were observed:
 
-Workaround: set display style **NOT** to Points, e.g. to BillboardSpheres.
+* RViz crashed when trying to display the messages in the `/camera/points`
+  topic.
+  Workaround: set display style **NOT** to Points, e.g. to BillboardSpheres.
+
+* While adjusting the parameters with dynamic reconfigure GUI the driver nodelet
+  freezed and sometimes even died.
 
 [ROS]: http://www.ros.org
 [PMD]: http://www.pmdtec.com/products-services/pmdvisionr-cameras/pmdvisionr-camboard-nano/
