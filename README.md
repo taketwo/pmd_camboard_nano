@@ -93,7 +93,7 @@ pmd_camboard_nano::DriverNodelet
 
 ### Dynamically reconfigurable parameters
 
-Use the [dynamic_reconfigure][] package to update this parameters in runtime.
+Use the [dynamic_reconfigure][] package to update these parameters in runtime:
 
 * `~remove_invalid_pixels` (default: true)  
   replace invalid pixels in depth and amplitude images with NaNs
@@ -104,8 +104,21 @@ Use the [dynamic_reconfigure][] package to update this parameters in runtime.
 * `~averaging_frames` (default: 0)  
   number of frames in sliding averaging window for distance data
 
+* `~signal_strength_check` (default: true)  
+  activate signal strength check
+
+* `~signal_strength_threshold` (default: 200)  
+  if the signal strength is below this threshold, the pixel is marked as invalid
+
 * `~bilateral_filter` (default: true)  
   enable/disable bilateral filtering of the depth images
+
+* `~sigma_spatial` (default: 2.5)  
+  spatial sigma parameter of the bilateral filter
+
+* `~bilateral_filter_enhance_image` (default: false)  
+  activate enhanced bilateral filtering (increases robustness against motion
+  blur)
 
 Misc
 ====
