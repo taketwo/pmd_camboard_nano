@@ -105,7 +105,7 @@ private:
     ros::NodeHandle amplitude_nh(nh, "amplitude");
     image_transport::ImageTransport amplitude_it(amplitude_nh);
     amplitude_publisher_ = amplitude_it.advertiseCamera("image", 1);
-    points_publisher_ = nh.advertise<sensor_msgs::PointCloud2>("points", 1);
+    points_publisher_ = nh.advertise<sensor_msgs::PointCloud2>("points_unrectified", 1);
 
     // Setup periodic callback to get new data from the camera
     update_timer_ = nh.createTimer(ros::Rate(update_rate).expectedCycleTime(), &DriverNodelet::updateCallback, this);

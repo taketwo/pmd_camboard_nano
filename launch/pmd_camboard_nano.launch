@@ -17,6 +17,13 @@
        appropriate nodelets will be loaded. -->
   <arg name="rectify" default="true"/>
 
+  <!-- Enable point cloud generation from the rectified depth image. If set to
+       true, appropriate nodelet will be loaded.
+       Note: the driver nodelet iself publishes point clouds which come from the
+       PMD SDK driver in "points_unrectified" topic. As the name suggests, those
+       point clouds are produced from distorted depth images. -->
+  <arg name="points" default="true"/>
+
   <arg name="respawn" default="true"/>
 
   <!-- Start nodelet manager in top-level namespace -->
@@ -67,6 +74,16 @@
           <remap from="image_mono" to="amplitude/image"/>
           <remap from="camera_info" to="amplitude/camera_info"/>
           <remap from="image_rect" to="amplitude/image_rect"/>
+    </node>
+
+    <!-- XYZ point cloud (optional) -->
+    <node if="$(arg points)"
+          pkg="nodelet" type="nodelet" name="points"
+          args="load depth_image_proc/point_cloud_xyz /$(arg manager)"
+          respawn="$(arg respawn)">
+          <remap from="image_rect" to="depth/image_rect"/>
+          <remap from="camera_info" to="depth/camera_info"/>
+          <remap from="points" to="points"/>
     </node>
 
   </group>
