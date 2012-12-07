@@ -24,6 +24,9 @@
        point clouds are produced from distorted depth images. -->
   <arg name="points" default="true"/>
 
+  <!-- Flip the output images/point clouds vertically. -->
+  <arg name="flip_vertical" default="true"/>
+
   <arg name="respawn" default="true"/>
 
   <!-- Start nodelet manager in top-level namespace -->
@@ -38,6 +41,7 @@
           args="load pmd_camboard_nano/driver /$(arg manager)">
           <param name="device_serial" value="$(arg device_serial)"/>
           <param name="frame_id" value="$(arg frame_id)"/>
+          <param name="flip_vertical" value="$(arg flip_vertical)"/>
     </node>
 
     <!-- Rectified distance image (optional) -->

@@ -39,6 +39,7 @@ PMDCamboardNano::PMDCamboardNano(const std::string& device_serial)
 , num_rows_(0)
 , num_columns_(0)
 , remove_invalid_pixels_(true)
+, flip_vertical_(true)
 {
   throwExceptionIfFailed(pmdOpen(&handle_, PMD_PLUGIN_DIR "camboardnano", device_serial.c_str(), PMD_PLUGIN_DIR "camboardnanoproc", ""));
   if (device_serial != "" && device_serial != getSerialNumber())
@@ -66,8 +67,7 @@ sensor_msgs::ImagePtr PMDCamboardNano::getDistanceImage()
   sensor_msgs::ImagePtr msg = createImageMessage();
   float* data = reinterpret_cast<float*>(&msg->data[0]);
   throwExceptionIfFailed(pmdGetDistances(handle_, data, msg->height * msg->step));
-  if (remove_invalid_pixels_)
-    removeInvalidPixels(data);
+  processData(data, 1, false, remove_invalid_pixels_, flip_vertical_);
   return msg;
 }
 
@@ -76,12 +76,7 @@ sensor_msgs::ImagePtr PMDCamboardNano::getDepthImage()
   sensor_msgs::ImagePtr msg = createImageMessage();
   float* data = reinterpret_cast<float*>(&msg->data[0]);
   throwExceptionIfFailed(pmdGetDistances(handle_, data, msg->height * msg->step));
-  // Divide distances with direction vectors
-  for (size_t i = 0; i < num_pixels_; i++)
-    data[i] /= direction_vectors_.get()[i];
-  // Remove invalid pixels if requested
-  if (remove_invalid_pixels_)
-    removeInvalidPixels(data);
+  processData(data, 1, true, remove_invalid_pixels_, flip_vertical_);
   return msg;
 }
 
@@ -90,8 +85,7 @@ sensor_msgs::ImagePtr PMDCamboardNano::getAmplitudeImage()
   sensor_msgs::ImagePtr msg = createImageMessage();
   float* data = reinterpret_cast<float*>(&msg->data[0]);
   throwExceptionIfFailed(pmdGetAmplitudes(handle_, data, msg->height * msg->step));
-  if (remove_invalid_pixels_)
-    removeInvalidPixels(data);
+  processData(data, 1, false, remove_invalid_pixels_, flip_vertical_);
   return msg;
 }
 
@@ -100,8 +94,7 @@ sensor_msgs::PointCloud2Ptr PMDCamboardNano::getPointCloud()
   sensor_msgs::PointCloud2Ptr msg = createPointCloud2Message();
   float* data = reinterpret_cast<float*>(&msg->data[0]);
   throwExceptionIfFailed(pmdGet3DCoordinates(handle_, data, msg->height * msg->row_step));
-  if (remove_invalid_pixels_)
-    removeInvalidPixels(data + 2, 3);
+  processData(data + 2, 3, false, remove_invalid_pixels_, flip_vertical_);
   return msg;
 }
 
@@ -181,11 +174,6 @@ std::string PMDCamboardNano::getSerialNumber()
   return std::string(serial);
 }
 
-void PMDCamboardNano::setRemoveInvalidPixels(bool remove)
-{
-  remove_invalid_pixels_ = remove;
-}
-
 unsigned int PMDCamboardNano::getIntegrationTime()
 {
   unsigned int i;
@@ -261,16 +249,43 @@ sensor_msgs::PointCloud2Ptr PMDCamboardNano::createPointCloud2Message()
   return msg;
 }
 
-void PMDCamboardNano::removeInvalidPixels(float* data, size_t step)
+void PMDCamboardNano::processData(float* data, size_t step, bool apply_direction_vectors, bool remove_invalid_pixels, bool flip_vertical)
 {
+  // If no processing is requested, return
+  if (!apply_direction_vectors && !remove_invalid_pixels && !flip_vertical)
+    return;
+
+  // If invalid pixels removal is requested, get the flag array
   unsigned int flags[num_pixels_];
-  throwExceptionIfFailed(pmdGetFlags(handle_, flags, sizeof(flags)));
-  for (size_t i = 0; i < num_pixels_; i++)
+  const unsigned int INVALID = PMD_FLAG_INVALID | PMD_FLAG_LOW_SIGNAL | PMD_FLAG_INCONSISTENT;
+  if (remove_invalid_pixels)
+    throwExceptionIfFailed(pmdGetFlags(handle_, flags, sizeof(flags)));
+
+  // Iterate over the whole data array row-wise with two indices going from top and from bottom
+  for (size_t r1 = 0, r2 = (num_rows_ - 1) * num_columns_; r1 < r2; r1 += num_columns_, r2 -= num_columns_)
   {
-    const unsigned int INVALID = PMD_FLAG_INVALID | PMD_FLAG_LOW_SIGNAL | PMD_FLAG_INCONSISTENT;
-    if (flags[i] & INVALID)
-      *data = std::numeric_limits<float>::quiet_NaN();
-    data += step;
+    // Iterate along the upper and lower rows
+    for (size_t c = 0, i1 = r1, i2 = r2; c < num_columns_; c++, i1++, i2++)
+    {
+      float v1;
+      float v2;
+      float* d1 = data + i1 * step;
+      float* d2 = data + i2 * step;
+      if (remove_invalid_pixels && (flags[i1] & INVALID))
+        v1 = std::numeric_limits<float>::quiet_NaN();
+      else if (apply_direction_vectors)
+        v1 = *d1 / direction_vectors_.get()[i1];
+      else
+        v1 = *d1;
+      if (remove_invalid_pixels && (flags[i2] & INVALID))
+        v2 = std::numeric_limits<float>::quiet_NaN();
+      else if (apply_direction_vectors)
+        v2 = *d2 / direction_vectors_.get()[i2];
+      else
+        v2 = *d2;
+      *d1 = flip_vertical ? v2 : v1;
+      *d2 = flip_vertical ? v1 : v2;
+    }
   }
 }
 

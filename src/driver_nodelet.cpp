@@ -69,10 +69,12 @@ private:
     std::string device_serial;
     double open_camera_retry_period;
     double update_rate;
+    bool flip_vertical;
     pn.param<std::string>("frame_id", frame_id_, "/camera_optical_frame");
     pn.param<std::string>("device_serial", device_serial, "");
     pn.param<double>("open_camera_retry_period", open_camera_retry_period, 3);
     pn.param<double>("update_rate", update_rate, 30);
+    pn.param<bool>("flip_vertical", flip_vertical, true);
 
     // Open camera
     while (!camera_)
@@ -84,6 +86,7 @@ private:
         loadCalibrationData();
         camera_->update();
         camera_info_ = camera_->getCameraInfo();
+        camera_->setFlipVertical(flip_vertical);
       }
       catch (PMDCameraNotOpenedException& e)
       {

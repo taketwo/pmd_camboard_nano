@@ -149,17 +149,37 @@ public:
   std::string getSerialNumber();
 
   /** Set an internal flag which controls whether the invalid pixels are
-    * are filtered out from the output depth/amplitude images.
+    * are filtered out from the output images/point clouds.
     *
-    * Setting this flag affects the behavior of getDepthImage() and
-    * getAmplitudeImage(). If the flag is not set, the depth/amplitude images
-    * returned by those functions will contain all of the data received from the
-    * camera. If the flag is set, the camera will be additionally queried for the
-    * "flags" array that describes which of the pixels are invalid. These pixels
-    * will be replaced with quiet NaNs in the output depth/amplitude images.
+    * Setting this flag affects the behavior of getDistanceImage(),
+    * getDepthImage(), getAmplitudeImage(), and getPointCloud(). If the flag is
+    * not set, the depth/amplitude images returned by those functions will
+    * contain all of the data received from the camera. If the flag is set, the
+    * camera will be additionally queried for the "flags" array that describes
+    * which of the pixels are invalid. These pixels will be replaced with quiet
+    * NaNs in the output data.
     *
     * By default the flag is set to true. */
-  void setRemoveInvalidPixels(bool remove);
+  void setRemoveInvalidPixels(bool remove)
+  {
+    remove_invalid_pixels_ = remove;
+  }
+
+  /** Set an internal flag which controls whether the images/point clouds read
+    * from the camera should be flipped vertically.
+    *
+    * Setting this flag affects the behavior of getDistanceImage(),
+    * getDepthImage(), getAmplitudeImage(), and getPointCloud(). If the flag is
+    * not set, then the data are exactly what is received from the camera. If
+    * the flag is set, then the data is flipped vertically, i.e. the first row
+    * is swapped with the last, the second row is swapped with the second last
+    * and so on.
+    *
+    * By default the flag is set to true. */
+  void setFlipVertical(bool flip)
+  {
+    flip_vertical_ = flip;
+  }
 
   /** Get current integration time (us). */
   unsigned int getIntegrationTime();
@@ -268,7 +288,7 @@ private:
 
   sensor_msgs::PointCloud2Ptr createPointCloud2Message();
 
-  void removeInvalidPixels(float* data, size_t step = 1);
+  void processData(float* data, size_t step, bool apply_direction_vectors, bool remove_invalid_pixels, bool flip_vertical);
 
   void getDirectionVectors();
 
@@ -301,6 +321,7 @@ private:
   unsigned int num_pixels_;
 
   bool remove_invalid_pixels_;
+  bool flip_vertical_;
 
   boost::scoped_ptr<double> direction_vectors_;
 

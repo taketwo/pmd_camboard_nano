@@ -88,6 +88,10 @@ pmd_camboard_nano::DriverNodelet
 * `~update_rate` (default: 30)  
   how often (Hz) to download and publish new data from the camera
 
+* `~flip_vertical` (default: true)  
+  flip the output images/point clouds vertically, so that the first row is
+  swapped with the last and so on
+
 ### Dynamically reconfigurable parameters
 
 Use the [dynamic_reconfigure][] package to update these parameters in runtime:
