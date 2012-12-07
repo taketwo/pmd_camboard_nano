@@ -164,8 +164,12 @@ private:
     camera_->setAveragingFrames(config.averaging_frames);
     camera_->setSignalStrengthCheck(config.signal_strength_check);
     camera_->setSignalStrengthThreshold(config.signal_strength_threshold);
+    camera_->setConsistencyCheck(config.consistency_check);
+    camera_->setConsistencyThreshold(config.consistency_threshold);
     camera_->setBilateralFilter(config.bilateral_filter);
     camera_->setBilateralFilterSigmaSpatial(config.sigma_spatial);
+    camera_->setBilateralFilterSigmaRange(config.sigma_range);
+    camera_->setBilateralFilterKernelSize(config.kernel_size);
     camera_->setBilateralFilterEnhanceImage(config.bilateral_filter_enhance_image);
     config_ = config;
   }

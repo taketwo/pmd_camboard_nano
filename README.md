@@ -110,11 +110,24 @@ Use the [dynamic_reconfigure][] package to update these parameters in runtime:
 * `~signal_strength_threshold` (default: 200)  
   if the signal strength is below this threshold, the pixel is marked as invalid
 
+* `~consistency_check` (default: true)  
+  activate consistency check
+
+* `~consistency_check_threshold` (default: 0.98)  
+  if the consistency value of a pixel is below this threshold, it is marked as
+  invalid
+
 * `~bilateral_filter` (default: true)  
   enable/disable bilateral filtering of the depth images
 
 * `~sigma_spatial` (default: 2.5)  
   spatial sigma parameter of the bilateral filter
+
+* `~sigma_range` (default: 25)  
+  range sigma parameter of the bilateral filter
+
+* `~kernel_size` (default: 5)  
+  kernel size parameter of the bilateral filter
 
 * `~bilateral_filter_enhance_image` (default: false)  
   activate enhanced bilateral filtering (increases robustness against motion

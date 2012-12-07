@@ -216,6 +216,31 @@ public:
     setProcessingPluginSetting("SetSignalStrengthThreshold", amplitude);
   }
 
+  /** Enable/disable the consistency check during the calculation of the flag
+    * image.
+    *
+    * The raw data from the device will be analyzed for inconsistencies, such
+    * as motion artifacts. */
+  void setConsistencyCheck(bool enable)
+  {
+    setProcessingPluginSetting("SetConsistencyCheck", enable);
+  }
+
+  /** Get the current threshold value for the consistency check. */
+  double getConsistencyThreshold()
+  {
+    return getProcessingPluginSetting<double>("GetConsistencyThreshold");
+  }
+
+  /** Set the consistency threshold for the consistency check.
+    *
+    * Valid range is between 0 and 1 and the argument will be clamped to this
+    * range. Higher values mean higher consistency and data quality. */
+  void setConsistencyThreshold(double threshold)
+  {
+    setProcessingPluginSetting("SetConsistencyThreshold", clamp(threshold, 0.0, 1.0));
+  }
+
   /** Enable/disable bilateral filtering of the distances. */
   void setBilateralFilter(bool enable)
   {
@@ -225,7 +250,19 @@ public:
   /** Set the spatial sigma parameter of the bilateral filter. */
   void setBilateralFilterSigmaSpatial(double sigma)
   {
-    setProcessingPluginSetting("SetBilateralFilterSigmaSpatial", sigma);
+    setProcessingPluginSetting("SetBilateralFilterSigmaSpatial", std::max(sigma, 0.01));
+  }
+
+  /** Set the range sigma parameter of the bilateral filter. */
+  void setBilateralFilterSigmaRange(double sigma)
+  {
+    setProcessingPluginSetting("SetBilateralFilterSigmaRange", std::max(sigma, 0.01));
+  }
+
+  /** Set the kernel size of the bilateral filter mask. */
+  void setBilateralFilterKernelSize(unsigned int size)
+  {
+    setProcessingPluginSetting("SetBilateralFilterKernelSize", std::max(size, (unsigned int)1));
   }
 
   /** Enable/disable enhanced bilateral filtering of the distances.
@@ -259,6 +296,12 @@ private:
     char buffer[128];
     throwExceptionIfFailed(pmdProcessingCommand(handle_, buffer, sizeof(buffer), command.c_str()));
     return boost::lexical_cast<T>(buffer);
+  }
+
+  template<typename T>
+  static T clamp(T value, T min, T max)
+  {
+    return value < min ? min : (value > max ? max : value);
   }
 
   void throwExceptionIfFailed(int result);
