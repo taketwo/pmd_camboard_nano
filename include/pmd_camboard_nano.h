@@ -27,6 +27,7 @@
 #include <string>
 
 #include <boost/scoped_ptr.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <ros/time.h>
 #include <sensor_msgs/distortion_models.h>
@@ -74,7 +75,7 @@ public:
 
   /** Get the distance data packaged in a ROS image message.
     *
-    * The contained data represent the distances from the camera and the
+    * The contained data represent the distances between the camera and the
     * objects that the respective pixels observe.
     *
     * Two subsequent calls to this function will return the same images with
@@ -196,27 +197,45 @@ public:
 
   /** Enable/disable the signal strength check during the calculation of the
     * flag image. */
-  void setSignalStrengthCheck(bool enable);
+  void setSignalStrengthCheck(bool enable)
+  {
+    setProcessingPluginSetting("SetSignalStrengthCheck", enable);
+  }
 
   /** Get the current threshold value for the signal strength check. */
-  unsigned int getSignalStrengthThreshold();
+  unsigned int getSignalStrengthThreshold()
+  {
+    return getProcessingPluginSetting<unsigned int>("GetSignalStrengthThreshold");
+  }
 
   /** Set the amplitude threshold for the signal strength check.
     *
     * Higher values mean higher sensitivity and more pixels flagged invalid. */
-  void setSignalStrengthThreshold(unsigned int amplitude);
+  void setSignalStrengthThreshold(unsigned int amplitude)
+  {
+    setProcessingPluginSetting("SetSignalStrengthThreshold", amplitude);
+  }
 
   /** Enable/disable bilateral filtering of the distances. */
-  void setBilateralFilter(bool enable);
+  void setBilateralFilter(bool enable)
+  {
+    setProcessingPluginSetting("SetBilateralFilter", enable);
+  }
 
   /** Set the spatial sigma parameter of the bilateral filter. */
-  void setBilateralFilterSigmaSpatial(double sigma);
+  void setBilateralFilterSigmaSpatial(double sigma)
+  {
+    setProcessingPluginSetting("SetBilateralFilterSigmaSpatial", sigma);
+  }
 
   /** Enable/disable enhanced bilateral filtering of the distances.
     *
     *  By incorporating precomputed flags into the bilateral filter it becomes
     *  more robust against motion blur. */
-  void setBilateralFilterEnhanceImage(bool enable);
+  void setBilateralFilterEnhanceImage(bool enable)
+  {
+    setProcessingPluginSetting("SetBilateralFilterEnhanceImage", enable);
+  }
 
 private:
 
@@ -227,6 +246,20 @@ private:
   void removeInvalidPixels(float* data, size_t step = 1);
 
   void getDirectionVectors();
+
+  void setProcessingPluginSetting(const std::string& command, bool value);
+
+  void setProcessingPluginSetting(const std::string& command, unsigned int value);
+
+  void setProcessingPluginSetting(const std::string& command, double value);
+
+  template<typename T>
+  T getProcessingPluginSetting(const std::string& command)
+  {
+    char buffer[128];
+    throwExceptionIfFailed(pmdProcessingCommand(handle_, buffer, sizeof(buffer), command.c_str()));
+    return boost::lexical_cast<T>(buffer);
+  }
 
   void throwExceptionIfFailed(int result);
 

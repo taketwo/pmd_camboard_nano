@@ -22,6 +22,7 @@
  ******************************************************************************/
 
 #include <cstdio>
+#include <sstream>
 
 #include <boost/make_shared.hpp>
 
@@ -227,74 +228,23 @@ unsigned int PMDCamboardNano::setIntegrationTime(unsigned int time)
 
 unsigned int PMDCamboardNano::getAveragingFrames()
 {
-  char buffer[64];
-  // First check whether averaging is enabled
-  throwExceptionIfFailed(pmdProcessingCommand(handle_, buffer, 8, "GetAveraging"));
-  if (std::string("On").compare(buffer) != 0)
+  if (getProcessingPluginSetting<std::string>("GetAveraging").compare("On") == 0)
+    return getProcessingPluginSetting<unsigned int>("GetAveragingFrames");
+  else
     return 0;
-  // Next get the actual number of frames in the averaging window
-  throwExceptionIfFailed(pmdProcessingCommand(handle_, buffer, 8, "GetAveragingFrames"));
-  unsigned int frames = 0;
-  sscanf(buffer, "%u", &frames);
-  return frames;
 }
 
 void PMDCamboardNano::setAveragingFrames(unsigned int frames)
 {
-  char cmd[64];
-  // First enable/disable averaging
-  sprintf(cmd, "SetAveraging %s", (frames != 0 ? "On" : "Off"));
-  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
-  // Next set the number of frames (if non-zero)
   if (frames != 0)
   {
-    sprintf(cmd, "SetAveragingFrames %u", frames);
-    throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
+    setProcessingPluginSetting("SetAveraging", true);
+    setProcessingPluginSetting("SetAveragingFrames", frames);
   }
-}
-
-void PMDCamboardNano::setSignalStrengthCheck(bool enable)
-{
-  char cmd[64];
-  sprintf(cmd, "SetSignalStrengthCheck %s", (enable ? "on" : "off"));
-  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
-}
-
-void PMDCamboardNano::setSignalStrengthThreshold(unsigned int amplitude)
-{
-  char cmd[64];
-  sprintf(cmd, "SetSignalStrengthThreshold %u", amplitude);
-  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
-}
-
-unsigned int PMDCamboardNano::getSignalStrengthThreshold()
-{
-  char buffer[64];
-  unsigned int threshold = 0;
-  throwExceptionIfFailed(pmdProcessingCommand(handle_, buffer, 8, "GetSignalStrengthThreshold"));
-  sscanf(buffer, "%u", &threshold);
-  return threshold;
-}
-
-void PMDCamboardNano::setBilateralFilter(bool enable)
-{
-  char cmd[64];
-  sprintf(cmd, "SetBilateralFilter %s", (enable ? "on" : "off"));
-  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
-}
-
-void PMDCamboardNano::setBilateralFilterSigmaSpatial(double sigma)
-{
-  char cmd[64];
-  sprintf(cmd, "SetBilateralFilterSigmaSpatial %.2f", sigma);
-  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
-}
-
-void PMDCamboardNano::setBilateralFilterEnhanceImage(bool enable)
-{
-  char cmd[64];
-  sprintf(cmd, "SetBilateralFilterEnhanceImage %s", (enable ? "on" : "off"));
-  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd));
+  else
+  {
+    setProcessingPluginSetting("SetAveraging", false);
+  }
 }
 
 sensor_msgs::ImagePtr PMDCamboardNano::createImageMessage()
@@ -377,6 +327,27 @@ void PMDCamboardNano::getDirectionVectors()
   direction_vectors_.reset(new double[num_pixels]);
   for (size_t i = 0; i < num_pixels; i++)
     direction_vectors_.get()[i] = distances.get()[i] / points.get()[i * 3 + 2];
+}
+
+void PMDCamboardNano::setProcessingPluginSetting(const std::string& command, bool value)
+{
+  std::stringstream cmd;
+  cmd << command << ' ' << (value ? "On" : "Off");
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd.str().c_str()));
+}
+
+void PMDCamboardNano::setProcessingPluginSetting(const std::string& command, unsigned int value)
+{
+  std::stringstream cmd;
+  cmd << command << ' ' << value;
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd.str().c_str()));
+}
+
+void PMDCamboardNano::setProcessingPluginSetting(const std::string& command, double value)
+{
+  std::stringstream cmd;
+  cmd << command << ' ' << std::fixed << std::setprecision(2) << value;
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, cmd.str().c_str()));
 }
 
 void PMDCamboardNano::throwExceptionIfFailed(int result)
