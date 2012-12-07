@@ -88,9 +88,6 @@ pmd_camboard_nano::DriverNodelet
 * `~update_rate` (default: 30)  
   how often (Hz) to download and publish new data from the camera
 
-* `~points_with_amplitudes` (default: false)  
-  controls whether to embed signal strength in the generated point clouds
-
 ### Dynamically reconfigurable parameters
 
 Use the [dynamic_reconfigure][] package to update these parameters in runtime:

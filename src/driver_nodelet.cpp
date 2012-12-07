@@ -73,7 +73,6 @@ private:
     pn.param<std::string>("device_serial", device_serial, "");
     pn.param<double>("open_camera_retry_period", open_camera_retry_period, 3);
     pn.param<double>("update_rate", update_rate, 30);
-    pn.param<bool>("points_with_amplitudes", points_with_amplitudes_, false);
 
     // Open camera
     while (!camera_)
@@ -149,9 +148,7 @@ private:
     // Points
     if (points_publisher_.getNumSubscribers() > 0)
     {
-      sensor_msgs::PointCloud2Ptr points = points_with_amplitudes_ ?
-                                           camera_->getPointCloudWithAmplitudes() :
-                                           camera_->getPointCloud();
+      sensor_msgs::PointCloud2Ptr points = camera_->getPointCloud();
       points->header.frame_id = frame_id_;
       points_publisher_.publish(points);
     }
@@ -216,7 +213,6 @@ private:
   boost::shared_ptr<ReconfigureServer> reconfigure_server_;
   pmd_camboard_nano::PMDConfig config_;
   sensor_msgs::CameraInfoPtr camera_info_;
-  bool points_with_amplitudes_;
 
 };
 

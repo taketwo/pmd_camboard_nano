@@ -17,10 +17,6 @@
        appropriate nodelets will be loaded. -->
   <arg name="rectify" default="true"/>
 
-  <!-- Augment the points in generated point clouds with the amplitude (signal
-       strength) values perceived by the sensor. -->
-  <arg name="points_with_amplitudes" default="false"/>
-
   <arg name="respawn" default="true"/>
 
   <!-- Start nodelet manager in top-level namespace -->
