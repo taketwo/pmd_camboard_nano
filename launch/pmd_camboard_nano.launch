@@ -80,6 +80,16 @@
           <remap from="image_rect" to="amplitude/image_rect"/>
     </node>
 
+    <!-- Rectified intensity image (optional) -->
+    <node if="$(arg rectify)"
+          pkg="nodelet" type="nodelet" name="rectify_intensity"
+          args="load image_proc/rectify /$(arg manager)"
+          respawn="$(arg respawn)">
+          <remap from="image_mono" to="intensity/image"/>
+          <remap from="camera_info" to="intensity/camera_info"/>
+          <remap from="image_rect" to="intensity/image_rect"/>
+    </node>
+
     <!-- XYZ point cloud (optional) -->
     <node if="$(arg points)"
           pkg="nodelet" type="nodelet" name="points"

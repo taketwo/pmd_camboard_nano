@@ -108,6 +108,9 @@ private:
     ros::NodeHandle amplitude_nh(nh, "amplitude");
     image_transport::ImageTransport amplitude_it(amplitude_nh);
     amplitude_publisher_ = amplitude_it.advertiseCamera("image", 1);
+    ros::NodeHandle intensity_nh(nh, "intensity");
+    image_transport::ImageTransport intensity_it(intensity_nh);
+    intensity_publisher_ = intensity_it.advertiseCamera("image", 1);
     points_publisher_ = nh.advertise<sensor_msgs::PointCloud2>("points_unrectified", 1);
 
     // Setup periodic callback to get new data from the camera
@@ -147,6 +150,14 @@ private:
       amplitude->header.frame_id = frame_id_;
       camera_info_->header.stamp = amplitude->header.stamp;
       amplitude_publisher_.publish(amplitude, camera_info_);
+    }
+    // Intensity
+    if (intensity_publisher_.getNumSubscribers() > 0)
+    {
+      sensor_msgs::ImagePtr intensity = camera_->getIntensityImage();
+      intensity->header.frame_id = frame_id_;
+      camera_info_->header.stamp = intensity->header.stamp;
+      intensity_publisher_.publish(intensity, camera_info_);
     }
     // Points
     if (points_publisher_.getNumSubscribers() > 0)
@@ -210,6 +221,7 @@ private:
   image_transport::CameraPublisher distance_publisher_;
   image_transport::CameraPublisher depth_publisher_;
   image_transport::CameraPublisher amplitude_publisher_;
+  image_transport::CameraPublisher intensity_publisher_;
   ros::Publisher points_publisher_;
   std::string frame_id_;
   typedef dynamic_reconfigure::Server<pmd_camboard_nano::PMDConfig> ReconfigureServer;

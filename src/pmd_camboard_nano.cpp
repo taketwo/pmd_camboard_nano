@@ -48,6 +48,8 @@ PMDCamboardNano::PMDCamboardNano(const std::string& device_serial)
     throw PMDCameraNotOpenedException("Opened a wrong camera (serial number does not match the requested).");
   }
   getDirectionVectors();
+  // Enable intensity images (experimental feature)
+  throwExceptionIfFailed(pmdProcessingCommand(handle_, 0, 0, "AllowIntensityImage"));
 }
 
 PMDCamboardNano::~PMDCamboardNano()
@@ -86,6 +88,16 @@ sensor_msgs::ImagePtr PMDCamboardNano::getAmplitudeImage()
   float* data = reinterpret_cast<float*>(&msg->data[0]);
   throwExceptionIfFailed(pmdGetAmplitudes(handle_, data, msg->height * msg->step));
   processData(data, 1, false, remove_invalid_pixels_, flip_vertical_);
+  return msg;
+}
+
+sensor_msgs::ImagePtr PMDCamboardNano::getIntensityImage()
+{
+  sensor_msgs::ImagePtr msg = createImageMessage();
+  float* data = reinterpret_cast<float*>(&msg->data[0]);
+  throwExceptionIfFailed(pmdGetIntensities(handle_, data, msg->height * msg->step));
+  // Ignore remove_invalid_pixels_ setting since it does not affect intensity image
+  processData(data, 1, false, false, flip_vertical_);
   return msg;
 }
 
