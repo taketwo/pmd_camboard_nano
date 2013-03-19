@@ -24,10 +24,10 @@ This package requires PMD SDK to be installed in the system. It will search
 for:
 
 * header files in `/usr/local/pmd/include`
-* shared library in `/usr/local/pmd/lib`
+* shared library in `/usr/local/pmd/bin`
 * plugins in `/usr/local/pmd/plugins`
 
-Alternatively, you could put the `include`, `lib`, and `plugins` folders
+Alternatively, you could put the `include`, `bin`, and `plugins` folders
 elsewhere in your file system and set an environment variable `${PMDDIR}` to
 point to their location.
 
@@ -173,7 +173,7 @@ Compatibility
 -------------
 
 This package was tested under Ubuntu Precise x64 with ROS Fuerte and under
-Ubuntu Oneiric x64 with ROS Electric.
+Ubuntu Oneiric x64 with ROS Electric. The version of PMD SDK is 1.3.2.
 
 Known issues
 ------------

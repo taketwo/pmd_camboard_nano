@@ -35,6 +35,8 @@ find_path(PMD_INCLUDE_DIR pmdsdk2.h
 )
 
 find_library(PMD_LIBRARY pmdaccess2
+  $ENV{PMDDIR}/bin
+  /usr/local/pmd/bin
   $ENV{PMDDIR}/lib
   /usr/local/pmd/lib
 )
