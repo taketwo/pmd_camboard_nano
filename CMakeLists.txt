@@ -52,7 +52,18 @@ endif(NOT PMD_INCLUDE_DIR OR NOT PMD_LIBRARY OR NOT PMD_PLUGIN_DIR)
 
 include_directories(${PMD_INCLUDE_DIR})
 
-add_definitions(-DPMD_PLUGIN_DIR=\\"${PMD_PLUGIN_DIR}/\\")
+# We need to pass the found directory of PMD plugins to the C++ compiler
+# through a macro definition. Cmake changed the way quotes are treated in
+# `add_definitions` somewhere in between 2.8.7 and 2.8.9, so we take different
+# branches based on the version.
+# (See https://github.com/taketwo/pmd_camboard_nano/issues/5)
+if(CMAKE_MAJOR_VERSION GREATER 1 AND
+   CMAKE_MINOR_VERSION GREATER 7 AND
+   CMAKE_PATCH_VERSION GREATER 6 )
+  add_definitions(-DPMD_PLUGIN_DIR="${PMD_PLUGIN_DIR}/")
+else()
+  add_definitions(-DPMD_PLUGIN_DIR=\\"${PMD_PLUGIN_DIR}/\\")
+endif()
 
 #...: default paths  :..........................................................
 
