@@ -189,7 +189,7 @@ one Lenovo laptop the following problems were observed:
   freezed and sometimes even died.
 
 [ROS]: http://www.ros.org
-[PMD]: http://www.pmdtec.com/products-services/pmdvisionr-cameras/pmdvisionr-camboard-nano/
+[PMD]: http://www.pmdtec.com/products_services/reference_design.php
 [openni_launch]: http://ros.org/wiki/openni_launch
 [dynamic_reconfigure]: http://ros.org/wiki/dynamic_reconfigure
 [calibration_forum_topic]: https://www.cayim.com/forum/index.php?/topic/33-intrinsics-and-calibration/#entry125
