@@ -28,8 +28,8 @@
 
 #include <sensor_msgs/image_encodings.h>
 
-#include "pmd_camboard_nano.h"
-#include "pmd_exceptions.h"
+#include <pmd_camboard_nano/pmd_camboard_nano.h>
+#include <pmd_camboard_nano/pmd_exceptions.h>
 
 namespace pmd_camboard_nano
 {

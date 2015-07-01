@@ -5,8 +5,8 @@ This package provides a [ROS][] driver for [PMD[vision]® CamBoard nano][PMD]
 depth sensor.
 
 The driver is packaged as a nodelet, therefore it may be directly merged inside
-another ROS node to avoid unnecessary data copying. On the same time, it may be
-started standalone or withing a nodelet manager. The distance, depth (see
+another ROS node to avoid unnecessary data copying. At the same time, it may be
+started standalone or within a nodelet manager. The distance, depth (see
 "Distance vs. depth images" section), amplitude, and point cloud data are
 retrieved from the device and processed only if there are subscribers on the
 corresponding topics.
@@ -21,15 +21,7 @@ PMD SDK installation
 --------------------
 
 This package requires PMD SDK to be installed in the system. It will search
-for:
-
-* header files in `/usr/local/pmd/include`
-* shared library in `/usr/local/pmd/bin`
-* plugins in `/usr/local/pmd/plugins`
-
-Alternatively, you could put the `include`, `bin`, and `plugins` folders
-elsewhere in your file system and set an environment variable `${PMDDIR}` to
-point to their location.
+for the PMDSDK root folder locally in the package folder `PACKAGE_FOLDER/PMDSDK`, globally in `/usr/local/pmd`, or systemwide defined by an environment variable in `env{PMDDIR}`. You can also change the search folder by modifying the CMakeLists.txt file `PMDSDK_ROOT_DIR`.
 
 You also need to copy the file `10-pmd.rules` provided with the SDK to
 `/etc/udev/rules.d` to allow normal users to open the camera.
@@ -37,8 +29,7 @@ You also need to copy the file `10-pmd.rules` provided with the SDK to
 Package installation
 --------------------
 
-Clone this repository into a folder that is in your `$ROS_PACKAGE_PATH` and run
-`rosmake pmd_camboard_nano`.
+Clone this repository into a local catkin workspace and simply call `catkin_make` in the workspace folder.
 
 ROS API
 =======
@@ -172,8 +163,7 @@ corresponding direction vectors.
 Compatibility
 -------------
 
-This package was tested under Ubuntu Precise x64 with ROS Fuerte and under
-Ubuntu Oneiric x64 with ROS Electric. The version of PMD SDK is 1.3.2.
+This package was tested under Ubuntu Trusty x64 with ROS Indigo, under Ubuntu Precise x64 with ROS Fuerte and under Ubuntu Oneiric x64 with ROS Electric. The version of PMD SDK is 1.3.2.
 
 Known issues
 ------------
