@@ -24,12 +24,11 @@ add_definitions(-DPMD_PLUGIN_DIR="${PMDSDK_PLUGIN_DIR}/")
 include_directories(include ${catkin_INCLUDE_DIRS} ${PMDSDK_INCLUDE_DIR})
 
 # make sure configure headers are built before any node using them
-add_library(pmd_camboard_nano_nodelet 	src/driver_nodelet.cpp
-										src/pmd_camboard_nano.cpp)
+add_library(pmd_camboard_nano_nodelet src/driver_nodelet.cpp src/pmd_camboard_nano.cpp)
 target_link_libraries(pmd_camboard_nano_nodelet ${catkin_LIBRARIES} ${PMDSDK_LIBRARIES})
 add_dependencies(pmd_camboard_nano_nodelet ${PROJECT_NAME}_gencfg)
 
-add_executable(pmd_camboard_nano_node 	src/driver_node)
+add_executable(pmd_camboard_nano_node src/driver_node)
 target_link_libraries(pmd_camboard_nano_node ${catkin_LIBRARIES} ${PMDSDK_LIBRARIES})
 add_dependencies(pmd_camboard_nano_node ${PROJECT_NAME}_gencfg)
 add_dependencies(pmd_camboard_nano_node ${${PROJECT_NAME}_EXPORTED_TARGETS})

@@ -20,8 +20,11 @@ Installation
 PMD SDK installation
 --------------------
 
-This package requires PMD SDK to be installed in the system. It will search
-for the PMDSDK root folder locally in the package folder `PACKAGE_FOLDER/PMDSDK`, globally in `/usr/local/pmd`, or systemwide defined by an environment variable in `env{PMDDIR}`. You can also change the search folder by modifying the CMakeLists.txt file `PMDSDK_ROOT_DIR`.
+This package requires PMD SDK to be installed in the system. It will search for
+the PMDSDK root folder locally in the package folder `<PACKAGE_FOLDER>/PMDSDK`,
+globally in `/usr/local/pmd`, or systemwide defined by an environment variable
+`PMDDIR`. You can also change the search folder by modifying the
+`PMDSDK_ROOT_DIR` variable in `CMakeLists.txt` file.
 
 You also need to copy the file `10-pmd.rules` provided with the SDK to
 `/etc/udev/rules.d` to allow normal users to open the camera.
@@ -29,7 +32,8 @@ You also need to copy the file `10-pmd.rules` provided with the SDK to
 Package installation
 --------------------
 
-Clone this repository into a local catkin workspace and simply call `catkin_make` in the workspace folder.
+Clone this repository into a local catkin workspace and simply call
+`catkin_make` in the workspace folder.
 
 ROS API
 =======
@@ -163,7 +167,9 @@ corresponding direction vectors.
 Compatibility
 -------------
 
-This package was tested under Ubuntu Trusty x64 with ROS Indigo, under Ubuntu Precise x64 with ROS Fuerte and under Ubuntu Oneiric x64 with ROS Electric. The version of PMD SDK is 1.3.2.
+This package was tested under Ubuntu Trusty x64 with ROS Indigo, Ubuntu Precise
+x64 with ROS Fuerte, and Ubuntu Oneiric x64 with ROS Electric. The version of
+PMD SDK is 1.3.2.
 
 Known issues
 ------------

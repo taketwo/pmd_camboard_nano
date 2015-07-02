@@ -39,7 +39,7 @@ else()
     message(ERROR "Unable to determine whether the OS is 32 or 64 bit.")
 endif()
 
-find_path(PMDSDK_PLUGIN_DIR 
+find_path(PMDSDK_PLUGIN_DIR
     NAMES ${PMDSDK_PLUGIN_NAMES}
     HINTS ${PMDSDK_ROOT_DIR}/lib ${PMDSDK_ROOT_DIR}/plugins
           /usr/local/pmd/lib /usr/local/pmd/plugins
