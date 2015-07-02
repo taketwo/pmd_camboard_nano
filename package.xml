@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package>
+  <name>pmd_camboard_nano</name>
+  <version>0.0.1</version>
+  <description>ROS driver for PMD[vision]® CamBoard nano depth sensor.</description>
+  <license>MIT</license>
+  <maintainer email="alexandrov88@gmail.com">Sergey Alexandrov</maintainer>
+  <author email="alexandrov88@gmail.com">Sergey Alexandrov</author>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>nodelet</build_depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>tf</build_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>image_transport</run_depend>
+  <run_depend>nodelet</run_depend>
+  <run_depend>dynamic_reconfigure</run_depend>
+  <run_depend>tf</run_depend>
+
+  <export>
+    <nodelet plugin="${prefix}/pmd_camboard_nano_nodelets.xml" />
+  </export>
+</package>

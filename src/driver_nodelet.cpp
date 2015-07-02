@@ -32,8 +32,8 @@
 #include <boost/thread.hpp>
 
 #include <pmd_camboard_nano/PMDConfig.h>
-#include "pmd_camboard_nano.h"
-#include "pmd_exceptions.h"
+#include <pmd_camboard_nano/pmd_camboard_nano.h>
+#include <pmd_camboard_nano/pmd_exceptions.h>
 
 namespace pmd_camboard_nano
 {
